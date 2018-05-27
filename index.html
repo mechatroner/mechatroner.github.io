@@ -1,153 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>RBQL - RainBow Query Language</title>
+<title>RBQL - RainBow Query Language</title>
+<style>
+
+.code_snippet {
+    font-style:italic;
+    background-color:#9bc1ff;
+}
+
+.generic_description {
+    font-size: 18px;
+}
+
+.description_paragraph {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+h1 {
+    font-size:32px;
+}
+
+</style>
 </head>
 
 <body>
+<h1>
+RBQL - RainBow Query Language
+</h1>
+<div class="description_paragraph">
+    <span class="generic_description">
+    RBQL is a technology which provides SQL-like language that supports SELECT and UPDATE queries. It is an ideal tool for data-transformation and data-analysis tasks on small and medium-sized data sets. RBQL query is executed using one of the backend languages. Currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g:
+    </span>
+    <br>
+    <br>
+    <span class="code_snippet">select top 100 a1, a2 * 10, a4.length where a1 == &quot;Buy&quot; order by parseInt(a2)</span><span> - for Java Script backend</span>
+    <br>
+    <br>
+    <span class="generic_description">
+    RBQL has minimalistic modular design. It doesn't have any dependencies, the only thing it needs is presence of the backend language interpreter/compiler. To use RBQL with Python you need to have python installed in your system, and to use RBQL with JavaScript you need Node.js
+    <br>
+    Check out RBQL repository on <a href="https://github.com/mechatroner/RBQL">github</a> for more info.
+    </span>
+</div>
 
-<h1 id="rbql-rainbow-query-language-description">RBQL (RainBow Query Language) Description</h1>
-<p>RBQL is a technology which provides SQL-like language that supports <em>SELECT</em> and <em>UPDATE</em> queries with Python or JavaScript expressions.</p>
-<h3 id="main-features">Main Features</h3>
-<ul>
-<li>Use Python or Java Script expressions inside <em>SELECT</em>, <em>UPDATE</em>, <em>WHERE</em> and <em>ORDER BY</em> statements</li>
-<li>Result set of any query immediately becomes a first-class table on it's own.</li>
-<li>Output entries appear in the same order as in input unless <em>ORDER BY</em> is provided.</li>
-<li>Input csv/tsv spreadsheet may contain varying number of entries (but select query must be written in a way that prevents output of missing values)</li>
-<li>Works out of the box, no external dependencies.</li>
-</ul>
-<h3 id="supported-sql-keywords-keywords-are-case-insensitive">Supported SQL Keywords (Keywords are case insensitive)</h3>
-<ul>
-<li>SELECT [ TOP <em>N</em> ] [ DISTINCT [ COUNT ] ]</li>
-<li>UPDATE [ SET ]</li>
-<li>WHERE</li>
-<li>ORDER BY ... [ DESC | ASC ]</li>
-<li>[ [ STRICT ] LEFT | INNER ] JOIN</li>
-<li>GROUP BY</li>
-<li>LIMIT <em>N</em></li>
-</ul>
-<p>All keywords have the same meaning as in SQL queries. You can check them <a href="https://www.w3schools.com/sql/default.asp">online</a></p>
-<h4 id="rbql-specific-keywords-rules-and-limitations">RBQL-specific keywords, rules and limitations</h4>
-<ul>
-<li><em>JOIN</em> statements must have the following form: <em><JOIN\_KEYWORD> (/path/to/table.tsv | table_name ) ON ai == bj</em><br />
-</li>
-<li><em>UPDATE SET</em> is synonym to <em>UPDATE</em>, because in RBQL there is no need to specify the source table.<br />
-</li>
-<li><em>UPDATE</em> has the same meaning as in SQL, but it also can be considered as a special type of <em>SELECT</em> query.<br />
-</li>
-<li><em>TOP</em> and <em>LIMIT</em> have identical meaning. Use whichever you like more.<br />
-</li>
-<li><em>DISTINCT COUNT</em> is like <em>DISTINCT</em>, but adds a new column to the &quot;distinct&quot; result set: number of occurences of the entry, similar to <em>uniq -c</em> unix command.<br />
-</li>
-<li><em>STRICT LEFT JOIN</em> is like <em>LEFT JOIN</em>, but generates an error if any key in left table &quot;A&quot; doesn't have exactly one matching key in the right table &quot;B&quot;.</li>
-</ul>
-<h3 id="special-variables">Special variables</h3>
-<table>
-<thead>
-<tr class="header">
-<th align="left">Variable Name</th>
-<th align="left">Variable Type</th>
-<th align="left">Variable Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left"><em>a1</em>, <em>a2</em>,..., <em>a{N}</em></td>
-<td align="left">string</td>
-<td align="left">Value of i-th column</td>
-</tr>
-<tr class="even">
-<td align="left"><em>b1</em>, <em>b2</em>,..., <em>b{N}</em></td>
-<td align="left">string</td>
-<td align="left">Value of i-th column in join table B</td>
-</tr>
-<tr class="odd">
-<td align="left"><em>NR</em></td>
-<td align="left">integer</td>
-<td align="left">Line number (1-based)</td>
-</tr>
-<tr class="even">
-<td align="left"><em>NF</em></td>
-<td align="left">integer</td>
-<td align="left">Number of fields in line</td>
-</tr>
-</tbody>
-</table>
-<h3 id="aggregate-functions-and-queries">Aggregate functions and queries</h3>
-<p>RBQL supports the following aggregate functions, which can also be used with <em>GROUP BY</em> keyword:<br />
-<em>COUNT()</em>, <em>MIN()</em>, <em>MAX()</em>, <em>SUM()</em>, <em>AVG()</em>, <em>VARIANCE()</em>, <em>MEDIAN()</em></p>
-<h4 id="limitations">Limitations</h4>
-<ul>
-<li>Aggregate function are CASE SENSITIVE and must be CAPITALIZED.</li>
-<li>It is illegal to use aggregate functions inside Python (or JS) expressions. Although you can use expressions inside aggregate functions. E.g. <code>MAX(float(a1) / 1000)</code> - legal; <code>MAX(a1) / 1000</code> - illegal.</li>
-</ul>
-<h3 id="examples-of-rbql-queries">Examples of RBQL queries</h3>
-<h4 id="with-python-expressions">With Python expressions</h4>
-<ul>
-<li><code>select top 100 a1, int(a2) * 10, len(a4) where a1 == &quot;Buy&quot; order by int(a2)</code></li>
-<li><code>select * order by random.random()</code> - random sort, this is an equivalent of bash command <em>sort -R</em></li>
-<li><code>select top 20 len(a1) / 10, a2 where a2 in [&quot;car&quot;, &quot;plane&quot;, &quot;boat&quot;]</code> - use Python's &quot;in&quot; to emulate SQL's &quot;in&quot;</li>
-<li><code>select len(a1) / 10, a2 where a2 in [&quot;car&quot;, &quot;plane&quot;, &quot;boat&quot;] limit 20</code></li>
-<li><code>update set a3 = 'US' where a3.find('of America') != -1</code></li>
-<li><code>select * where NR &lt;= 10</code> - this is an equivalent of bash command &quot;head -n 10&quot;, NR is 1-based')</li>
-<li><code>select a1, a4</code> - this is an equivalent of bash command &quot;cut -f 1,4&quot;</li>
-<li><code>select * order by int(a2) desc</code> - this is an equivalent of bash command &quot;sort -k2,2 -r -n&quot;</li>
-<li><code>select NR, *</code> - enumerate lines, NR is 1-based</li>
-<li><code>select * where re.match(&quot;.*ab.*&quot;, a1) is not None</code> - select entries where first column has &quot;ab&quot; pattern</li>
-<li><code>select a1, b1, b2 inner join ./countries.txt on a2 == b1 order by a1, a3</code> - an example of join query</li>
-<li><code>select distinct count len(a1) where a2 != 'US'</code></li>
-<li><code>select MAX(a1), MIN(a1) where a2 != 'US' group by a2, a3</code></li>
-</ul>
-<h4 id="with-javascript-expressions">With JavaScript expressions</h4>
-<ul>
-<li><code>select top 100 a1, a2 * 10, a4.length where a1 == &quot;Buy&quot; order by parseInt(a2)</code></li>
-<li><code>select * order by Math.random()</code> - random sort, this is an equivalent of bash command <em>sort -R</em></li>
-<li><code>select top 20 a1.length / 10, a2 where [&quot;car&quot;, &quot;plane&quot;, &quot;boat&quot;].indexOf(a2) &gt; -1</code></li>
-<li><code>select a1.length / 10, a2 where [&quot;car&quot;, &quot;plane&quot;, &quot;boat&quot;].indexOf(a2) &gt; -1 limit 20</code></li>
-<li><code>update set a3 = 'US' where a3.indexOf('of America') != -1</code></li>
-<li><code>select * where NR &lt;= 10</code> - this is an equivalent of bash command &quot;head -n 10&quot;, NR is 1-based')</li>
-<li><code>select a1, a4</code> - this is an equivalent of bash command &quot;cut -f 1,4&quot;</li>
-<li><code>select * order by parseInt(a2) desc</code> - this is an equivalent of bash command &quot;sort -k2,2 -r -n&quot;</li>
-<li><code>select NR, *</code> - enumerate lines, NR is 1-based</li>
-<li><code>select a1, b1, b2 inner join ./countries.txt on a2 == b1 order by a1, a3</code> - an example of join query</li>
-<li><code>select distinct count a1.length where a2 != 'US'</code></li>
-<li><code>select MAX(a1), MIN(a1) where a2 != 'US' group by a2, a3</code></li>
-</ul>
-<h3 id="faq">FAQ</h3>
-<h4 id="how-does-rbql-work">How does RBQL work?</h4>
-<p>Python module rbql.py parses RBQL query, creates a new python worker module, then imports and executes it.</p>
-<p>Explanation of simplified Python version of RBQL algorithm by example. 1. User enters the following query, which is stored as a string <em>Q</em>:</p>
-<pre><code>    SELECT a3, int(a4) + 100, len(a2) WHERE a1 != &#39;SELL&#39;</code></pre>
-<ol start="2" style="list-style-type: decimal">
-<li><p>RBQL replaces all <code>a{i}</code> substrings in the query string <em>Q</em> with <code>a[{i - 1}]</code> substrings. The result is the following string:</p>
-<pre><code>Q = &quot;SELECT a[2], int(a[3]) + 100, len(a[1]) WHERE a[0] != &#39;SELL&#39;&quot;</code></pre></li>
-<li><p>RBQL searches for &quot;SELECT&quot; and &quot;WHERE&quot; keywords in the query string <em>Q</em>, throws the keywords away, and puts everything after these keywords into two variables <em>S</em> - select part and <em>W</em> - where part, so we will get:</p>
-<pre><code>S = &quot;a[2], int(a[3]) + 100, len(a[1])&quot;
-W = &quot;a[0] != &#39;SELL&#39;&quot;</code></pre></li>
-<li><p>RBQL has static template script which looks like this:</p>
-<pre><code>for line in sys.stdin:
-    a = line.rstrip(&#39;\n&#39;).split(&#39;\t&#39;)
-    if %%%W_Expression%%%:
-        out_fields = [%%%S_Expression%%%]
-        print &#39;\t&#39;.join([str(v) for v in out_fields])</code></pre></li>
-<li><p>RBQL replaces <code>%%%W_Expression%%%</code> with <em>W</em> and <code>%%%S_Expression%%%</code> with <em>S</em> so we get the following script:</p>
-<pre><code>for line in sys.stdin:
-    a = line.rstrip(&#39;\n&#39;).split(&#39;\t&#39;)
-    if a[0] != &#39;SELL&#39;:
-        out_fields = [a[2], int(a[3]) + 100, len(a[1])]
-        print &#39;\t&#39;.join([str(v) for v in out_fields])</code></pre></li>
-<li><p>RBQL runs the patched script against user's data file:</p>
-<pre><code>./tmp_script.py &lt; data.tsv &gt; result.tsv</code></pre>
-<p>Result set of the original query (<code>SELECT a3, int(a4) + 100, len(a2) WHERE a1 != 'SELL'</code>) is in the &quot;result.tsv&quot; file. It is clear that this simplified version can only work with tab-separated files.</p></li>
-</ol>
-<h4 id="is-this-technology-reliable">Is this technology reliable?</h4>
-<p>It should be: RBQL scripts have only 1000 - 2000 lines combined (depending on how you count them) and there are no external dependencies. There is no complex logic, even query parsing functions are very simple. If something goes wrong RBQL will show an error instead of producing incorrect output, also there are currently 5 different warning types.</p>
-<h3 id="cli_rbql.py-script">cli_rbql.py script</h3>
-<p>RBQL comes with cli_rbql.py script. Use it as standalone program to execute RBQL queries from command line.</p>
-<p>Usage example:</p>
-<pre><code>./cli_rbql.py --query &quot;select a1, a2 order by a1&quot; &lt; input.tsv</code></pre>
-<p>To find out more about cli_rbql.py and available options, execute:</p>
-<pre><code>./cli_rbql.py -h</code></pre>
+<div class="description_paragraph">
+    RBQL is available on the following platforms:
+    <ul>
+    <li><a href="https://github.com/mechatroner/rainbow_csv">Rainbow CSV</a> extension for Vim editor</li>
+    <li><a href="https://github.com/mechatroner/vscode_rainbow_csv">Rainbow CSV</a> extension for Visual Studio Code editor</li>
+    <li><a href="https://github.com/mechatroner/sublime_rainbow_csv">Rainbow CSV</a> extension for Sublime Text 3 editor</li>
+    <li>Command line utility cli_rbql.py - available in <a href="https://github.com/mechatroner/RBQL">RBQL</a> repository</li>
+    </ul>
+    <br>
+
+    <span class="generic_description">
+    Below is an example of RBQL usage in Rainbow CSV Vim plugin:
+    </span>
+    <img src="https://i.imgur.com/Tnk9KZv.gif" alt="RBQL Vim screencast">
+</div>
 
 
 </body>
