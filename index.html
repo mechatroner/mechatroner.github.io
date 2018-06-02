@@ -19,6 +19,9 @@ body {
     font-size: 18px;
 }
 
+.red_span {
+    color: red;
+}
 
 .code_snippet {
     padding: 8px;
@@ -47,7 +50,7 @@ RBQL - RainBow Query Language
     </span>
     <br>
     <br>
-    <div class="code_snippet">select top 100 a1, a2 * 10, a4.length where a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 order by parseInt(a2), a4</div>
+    <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10, a4.length <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
     <br>
     <br>
     <span class="generic_description">
