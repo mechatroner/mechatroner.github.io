@@ -43,6 +43,7 @@ body {
 .description_paragraph {
     margin-bottom: 20px;
     font-size: 18px;
+    max-width: 1100px;
 }
 
 .red_span {
@@ -85,11 +86,12 @@ RBQL - RainBow Query Language
     </span>
     <br>
     <br>
-    <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10, a4.length <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
+    <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
     <br>
     <br>
     <span class="generic_description">
     Combination of SQL statements and expressions from a different language makes RBQL very easy to learn and use: you just need basic understanding of SQL and one of the available high-level backend languages. So there is a high chance that you alread know RBQL!
+    <br>
     <br>
     RBQL has minimalistic modular design. It doesn't have any dependencies, the only thing it needs is presence of the backend language interpreter/compiler. To use RBQL with Python you need to have python installed in your system, and to use RBQL with JavaScript you need Node.js
     <br>
