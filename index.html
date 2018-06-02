@@ -9,10 +9,6 @@ body {
     color: #444444;
 }
 
-.code_snippet {
-    font-style:italic;
-    background-color:#9bc1ff;
-}
 
 .generic_description {
     font-size: 18px;
@@ -21,6 +17,16 @@ body {
 .description_paragraph {
     margin-bottom: 20px;
     font-size: 18px;
+}
+
+
+.code_snippet {
+    padding: 8px;
+    white-space: nowrap;
+    background: #F1F1F1;
+    border: 1px solid #E1E1E1;
+    border-radius: 4px; 
+    display: inline-block;
 }
 
 h1 {
@@ -36,11 +42,11 @@ RBQL - RainBow Query Language
 </h1>
 <div class="description_paragraph">
     <span class="generic_description">
-    RBQL is a technology which provides SQL-like language that supports SELECT and UPDATE queries. It is an ideal tool for data-transformation and data-analysis tasks on small and medium-sized data sets. RBQL query is executed using one of the backend languages. Currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g:
+    RBQL is a technology which provides SQL-like language that supports SELECT and UPDATE queries. It is an ideal tool for data-transformation and data-analysis tasks on small and medium-sized data sets. RBQL query is executed using one of the backend languages. Currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g for JavaScript backend:
     </span>
     <br>
     <br>
-    <span class="code_snippet">select top 100 a1, a2 * 10, a4.length where a1 == &quot;Buy&quot; order by parseInt(a2)</span><span> - for Java Script backend</span>
+    <div class="code_snippet">select top 100 a1, a2 * 10, a4.length where a1 == &quot;Buy&quot; &apos;&apos; a4.indexOf('oil') != -1 order by parseInt(a2), a4</div>
     <br>
     <br>
     <span class="generic_description">
