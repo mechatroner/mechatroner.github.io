@@ -83,7 +83,7 @@ h1 {
 
 #github_img {
     float: right;
-    margin-right: 10px;
+    margin-right: 20px;
     margin-top: 9px;
 }
 
@@ -93,7 +93,14 @@ h1 {
     margin-top: 16px;
 }
 
-#contacts_link {
+.right_header_block {
+    margin-right: 20px;
+    display: inline-block;
+    margin-top: 16px;
+    float: right;
+}
+
+.simple_link {
     font-size: 18px;
     color: white;
     text-decoration: none;
@@ -106,6 +113,8 @@ h1 {
 
 <div class="infoheader">
 <a href="https://github.com/mechatroner/RBQL"><img id="github_img" src="resources/images/github.png" height="32" width="32"></a>
+<div class="right_header_block"><a class="simple_link" href="https://gitter.im/Rainbow-CSV-and-RBQL">Community</a></div>
+<div class="right_header_block"><a class="simple_link" href="https://github.com/mechatroner/RBQL#rbql-rainbow-query-language-description">Documentation</a></div>
 </div>
 
 <div class="main_content">
@@ -148,7 +157,7 @@ RBQL - RainBow Query Language
 </div>
 
 <div class="footer">
-<div id="contacts_block"><a id="contacts_link" href="mailto:mechatroner@yandex.ru">Contacts</a></div>
+<div id="contacts_block"><a class="simple_link" href="mailto:mechatroner@yandex.ru">Contacts</a></div>
 <a href="https://twitter.com/"><img id="twitter_img" src="resources/images/twitter.png" height="32" width="32"></a>
 <a href="https://www.facebook.com/"><img id="facebook_img" src="resources/images/facebook.png" height="32" width="32"></a>
 </div>
