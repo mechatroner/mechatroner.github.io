@@ -467,7 +467,7 @@ function after_load() {
     document.getElementById("save_result_table").addEventListener("click", save_result_table);
     document.getElementById("tableSubmit").addEventListener("click", process_submit);
     document.getElementById("cancelSubmit").addEventListener("click", close_custom_table_dialog);
-    document.getElementById("rbql_input").focus();
+    //document.getElementById("rbql_input").focus();
     document.getElementById("rbql_input").addEventListener("keyup", function(event) {
         event.preventDefault();
         if (event.keyCode == 13) {
