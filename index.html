@@ -173,6 +173,10 @@ input {
     height: 22px;
 }
 
+#open_custom_table_dialog {
+    margin-top: 12px;
+}
+
 #rbql_run_btn {
     width: 70px;
     background-color: #4CAF50;
@@ -329,7 +333,7 @@ input {
         <div id="table_control_group">
             <span>Use the default test table below (reduced version of <a href="https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset">kaggle imdb-5000</a>) or "upload" your own.<span><br>
             <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
-            <button class="dark_button" id="open_custom_table_dialog">Select another table... (optional)</button>
+            <button class="dark_button" id="open_custom_table_dialog">Select another table from disk... (optional)</button>
         </div>
         <div id="input_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table</span></div>
         <div class="table_group">
