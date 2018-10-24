@@ -12,6 +12,8 @@
   gtag('config', 'UA-120898558-1');
 </script>
 
+<script src="rbql_demo.js"></script>
+<script src="FileSaver.js"></script>
 
 <title>RBQL - RainBow Query Language</title>
 <style>
@@ -42,6 +44,7 @@ body {
     bottom: 0;
     width: 100%;
     height: 50px;
+    margin-top: 40px;
     margin-bottom: 0px;
     background-color: red;
     position: relative;
@@ -50,8 +53,9 @@ body {
 .generic_description {
 }
 
-.main_content {
+.content_group {
     margin-left: 40px;
+    margin-top: 20px;
 }
 
 .description_paragraph {
@@ -118,61 +122,282 @@ h1 {
     text-decoration: none;
 }
 
+
+
+
+
+.infoMsg {
+    padding: 4px;
+    font-size: 16px;
+}
+
+table {
+    display: block;
+    white-space: nowrap;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+
+td {
+    padding: 3px 8px;
+}
+
+.table_group {
+    margin-top: 10px;
+    max-width: 75%;
+    max-height: 400px;
+    overflow: scroll;
+    border: 2px solid black;
+}
+
+#table_control_group {
+    max-width: 75%;
+}
+
+#output_group {
+    display: none;
+}
+
+#rbql_query_group {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+
+input {
+    margin-right: 10px;
+    font-size: 18px;
+    vertical-align: bottom;
+    font-family: Consolas, Monaco, monospace;
+    height: 22px;
+}
+
+#rbql_run_btn {
+    width: 70px;
+    background-color: #4CAF50;
+    display: inline-block;
+    border:none;
+    font-size: 18px;
+    color: white;
+    height: 28px;
+    cursor:pointer;
+    font-weight: bold;
+}
+
+.dark_button {
+    background-color: #4A5646;
+    display: block;
+    border:none;
+    font-size: 18px;
+    color: white;
+    height: 28px;
+    cursor:pointer;
+}
+
+
+
+.table_cut_warning {
+    color: red;
+    font-weight: bold;
+    font-size: 18px;
+    display: none;
+}
+
+
+.padded_label {
+    padding: 5px;
+}
+
+
+#table_load_dialog { 
+    padding: 5px;
+    width: 50%; 
+    height: 200px;
+    top: 20%; 
+    left: 25%; 
+    z-index: 1000000; 
+    background-color: #FFFCD3; 
+    position: fixed; 
+    display: none;
+    color: black;
+    border: 1px solid black;
+}
+
+
+#rbql_error_message { 
+    width: 50%; 
+    top: 20%; 
+    left: 25%; 
+    z-index: 1000000; 
+    background-color: #FFFCD3; 
+    position: fixed; 
+    display: none;
+    color: black;
+}
+
+#rbql_error_message_header { 
+    font-size: 18px;
+    height: 26px;
+    font-weight: bold;
+}
+
+#ack_error { 
+    width: 70px;
+    background-color: #FF4444;
+    display: inline-block;
+    transition-duration: 0.3s;
+    border:none;
+    font-size: 18px;
+    height: 28px;
+    font-weight: bold;
+}
+
+#ack_error:hover { 
+    background-color: #b70101;
+}
+
+#error_message_details { 
+    height: 100px;
+    overflow: auto;
+    border: 1px solid black;
+    white-space: pre;
+    margin: 5px;
+    background-color: #FFFFFF;
+}
+
+
 </style>
 </head>
 
 <body>
 
 <div class="infoheader">
-<a href="https://github.com/mechatroner/RBQL"><img id="github_img" src="resources/images/github.png" height="32" width="32"></a>
-<div class="right_header_block"><a class="simple_link" href="https://gitter.im/Rainbow-CSV-and-RBQL">Community</a></div>
-<div class="right_header_block"><a class="simple_link" href="https://github.com/mechatroner/RBQL#rbql-rainbow-query-language-description">Documentation</a></div>
+    <a href="https://github.com/mechatroner/RBQL"><img id="github_img" src="resources/images/github.png" height="32" width="32"></a>
+    <div class="right_header_block"><a class="simple_link" href="https://gitter.im/Rainbow-CSV-and-RBQL">Community</a></div>
+    <div class="right_header_block"><a class="simple_link" href="https://github.com/mechatroner/RBQL#rbql-rainbow-query-language-description">Documentation</a></div>
 </div>
 
-<div class="main_content">
-<h1>
-RBQL - RainBow Query Language
-</h1>
-<div class="description_paragraph">
-    <span class="generic_description">
-    RBQL is a technology which provides SQL-like language that supports SELECT and UPDATE queries. It is an ideal tool for data-transformation and data-analysis tasks on small and medium-sized data sets. RBQL query is executed using one of the backend languages. Currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g for JavaScript backend:
-    </span>
-    <br>
-    <br>
-    <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
-    <br>
-    <br>
-    <span class="generic_description">
-    Combination of SQL statements and expressions from a different language makes RBQL very easy to learn and use: you just need basic understanding of SQL and one of the available general-purpose backend languages. So there is a high chance that you alread know RBQL!
-    <br>
-    <br>
-    RBQL has minimalistic modular design and zero dependencies, the only thing it needs is presence of the backend language interpreter/compiler. To use RBQL with Python you need to have python installed in your system, and to use RBQL with JavaScript you need Node.js
-    </span>
+<div class="content_group">
+    <h1>
+        RBQL - RainBow Query Language
+    </h1>
+    <div class="description_paragraph">
+        <span class="generic_description">
+        RBQL is a technology which provides SQL-like language that supports SELECT and UPDATE queries. It is an ideal tool for data-transformation and data-analysis tasks on small and medium-sized data sets. RBQL query is executed using one of the backend languages. Currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g for JavaScript backend:
+        </span>
+        <br>
+        <br>
+        <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
+        <br>
+        <br>
+        <span class="generic_description">
+        Combination of SQL statements and expressions from a different language makes RBQL very easy to learn and use: you just need basic understanding of SQL and one of the available general-purpose backend languages. So there is a high chance that you alread know RBQL!
+        <br>
+        <br>
+        RBQL has minimalistic modular design and zero dependencies, the only thing it needs is presence of the backend language interpreter/compiler. To use RBQL with Python you need to have python installed in your system, and to use RBQL with JavaScript you need Node.js
+        </span>
+    </div>
+
+    <div class="description_paragraph">
+        RBQL is available on the following platforms:
+        <ul>
+        <li><a href="https://pypi.org/project/rbql/">rbql-py</a> CLI App for Python</li>
+        <li><a href="https://www.npmjs.com/package/rbql">rbql-js</a> CLI App for Node.js (npm)</li>
+        <li><a href="https://github.com/mechatroner/rainbow_csv">Rainbow CSV</a> extension for Vim editor</li>
+        <li><a href="https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv">Rainbow CSV</a> extension for Visual Studio Code editor</li>
+        <li><a href="https://packagecontrol.io/packages/rainbow_csv">Rainbow CSV</a> extension for Sublime Text 3 editor</li>
+        </ul>
+        <br>
+
+        <span class="generic_description">
+        Below is an example of RBQL usage in Rainbow CSV Vim plugin:
+        </span>
+        <br>
+        <img src="https://i.imgur.com/Tnk9KZv.gif" alt="RBQL Vim screencast">
+    </div>
 </div>
 
-<div class="description_paragraph">
-    RBQL is available on the following platforms:
-    <ul>
-    <li><a href="https://pypi.org/project/rbql/">rbql-py</a> CLI App for Python</li>
-    <li><a href="https://www.npmjs.com/package/rbql">rbql-js</a> CLI App for Node.js (npm)</li>
-    <li><a href="https://github.com/mechatroner/rainbow_csv">Rainbow CSV</a> extension for Vim editor</li>
-    <li><a href="https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv">Rainbow CSV</a> extension for Visual Studio Code editor</li>
-    <li><a href="https://packagecontrol.io/packages/rainbow_csv">Rainbow CSV</a> extension for Sublime Text 3 editor</li>
-    </ul>
-    <br>
 
-    <span class="generic_description">
-    Below is an example of RBQL usage in Rainbow CSV Vim plugin:
-    </span>
+<div class="content_group">
+    <div id="input_group">
+        <div id="table_control_group">
+            <span>Use the default test table below or "upload" your own.<span><br>
+            <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
+            <button class="dark_button" id="open_custom_table_dialog">Select another table... (optional)</button>
+        </div>
+        <div id="input_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table</span></div>
+        <div class="table_group">
+            <table id="preview_table">
+            </table>
+        </div>
+    </div>
+    <div id="rbql_query_group">
+    <input type="text" size="90" id="rbql_input" placeholder="select ... where ... order by ... limit ... " autofocus>
+    <button id="rbql_run_btn">Run</button>
+    </div>
+    <div id="output_group">
+        <div id="table_control_group">
+            <button class="dark_button" id="save_result_table">Save result file to disk</button>
+        </div>
+        <div id="output_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but you can save the whole result table to disk</span></div>
+        <div class="table_group">
+            <table id="output_table">
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+<div id="table_load_dialog">
+    <span>Select spreadsheet file to use. Your data is safe: the file won't be sent over network - all operations are performed locally in the browser. Performance of this demo is limited by your browser rendering capabilities - do not submit very big files!</span><br>
     <br>
-    <img src="https://i.imgur.com/Tnk9KZv.gif" alt="RBQL Vim screencast">
+    <span class="infoMsg">1.</span><input id="doLoadTable" type="file"/>
+    <br>
+    <br>
+    <span class="infoMsg">2. Select file separator character:</span>
+    <select id="separator_ddl">
+      <option value="tsv">TAB (\t)</option>
+      <option value="csv">Comma (,)</option>
+      <option value="csv (semicolon)">Semicolon (;)</option>
+      <option value="csv (pipe)">Pipe (|)</option>
+    </select>
+    <br>
+    <br>
+    <div>
+    <button id="cancelSubmit" class="dark_button" style="display: inline-block">Cancel</button>
+    <button id="tableSubmit" class="dark_button" style="display: inline-block">Submit</button>
+    </div>
 </div>
+
+
+
+
+<div id="rbql_error_message">
+    <div id="rbql_error_message_header">
+        <span id="error_header" class="padded_label"></span>
+    </div>
+    <br>
+    <div>
+        <span class="padded_label" id="error_message_header"></span>
+    </div>
+    <br>
+    <div>
+        <span class="padded_label">Details:</span>
+        <br>
+        <div id="error_message_details"></div>
+    </div>
+    <div style="display: flex; justify-content:center;">
+        <button id="ack_error">OK</button>
+    </div>
 </div>
+
 
 <div class="footer">
-<div id="contacts_block"><a class="simple_link" href="mailto:mechatroner@yandex.ru">Contacts</a></div>
-<a href="https://twitter.com/"><img id="twitter_img" src="resources/images/twitter.png" height="32" width="32"></a>
-<a href="https://www.facebook.com/"><img id="facebook_img" src="resources/images/facebook.png" height="32" width="32"></a>
+    <div id="contacts_block"><a class="simple_link" href="mailto:mechatroner@yandex.ru">Contacts</a></div>
+    <a href="https://twitter.com/"><img id="twitter_img" src="resources/images/twitter.png" height="32" width="32"></a>
+    <a href="https://www.facebook.com/"><img id="facebook_img" src="resources/images/facebook.png" height="32" width="32"></a>
 </div>
 
 </body>
