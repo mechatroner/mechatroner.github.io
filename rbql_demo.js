@@ -201,12 +201,21 @@ function remove_children(root_node) {
     }
 }
 
-function append_cell(row, cell_style, cell_text) {
+
+function append_cell(row, cell_text, params) {
     let cell = document.createElement('td');
-    cell.style.border = cell_style;
+    if (params['use_special_border']) {
+        cell.style.border = '1px solid red';
+    } else {
+        cell.style.border = '1px solid #4A5646';
+    }
+    if (params['use_special_color']) {
+        cell.style.color = '#FF6868';
+    }
     cell.textContent = cell_text;
     row.appendChild(cell);
 }
+
 
 function make_preview_table(table, records, make_header) {
     remove_children(table);
@@ -215,19 +224,19 @@ function make_preview_table(table, records, make_header) {
     if (make_header) {
         let row = document.createElement('tr');
         table.appendChild(row);
-        append_cell(row, '1px solid red', 'NR');
+        append_cell(row, 'NR', {'use_special_border': true, 'use_special_color': true});
         for (let i = 0; i < records[0].length; i++) {
-            append_cell(row, '1px solid red', `a${i + 1}`);
+            append_cell(row, `a${i + 1}`, {'use_special_border': true, 'use_special_color': true});
         }
     }
     for (var nr = 0; nr < records.length; nr++) {
         let row = document.createElement('tr');
         table.appendChild(row);
         if (make_header) {
-            append_cell(row, '1px solid red', nr + 1);
+            append_cell(row, nr + 1, {'use_special_border': true, 'use_special_color': false});
         }
         for (var nf = 0; nf < records[nr].length; nf++) {
-            append_cell(row, '1px solid #4A5646', records[nr][nf]);
+            append_cell(row, records[nr][nf], {'use_special_border': false, 'use_special_color': false});
         }
     }
 }

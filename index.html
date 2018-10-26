@@ -199,6 +199,10 @@ input {
 }
 
 
+.color_span {
+    color: #FF6868;
+}
+
 
 .table_cut_warning {
     color: red;
@@ -334,6 +338,7 @@ input {
         </div>
     </div>
     <div id="rbql_query_group">
+    <div style="margin-bottom: 4px"><span>Input SQL-like RBQL query and press Enter. Use <span class="color_span">a1</span>, <span class="color_span">a2</span>, <span class="color_span">a3</span>, ... and <span class="color_span">NR</span> as column names.</span></div>
     <input type="text" size="90" id="rbql_input" placeholder="select ... where ... order by ... limit ... ">
     <button id="rbql_run_btn">Run</button>
     </div>
