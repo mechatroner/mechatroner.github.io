@@ -441,13 +441,17 @@ function close_custom_table_dialog() {
 
 
 function process_submit() {
-    var reader = new FileReader();
     var inputElem = document.getElementById("doLoadTable");
     var selected_file = inputElem.files[0];
     let drop_down_list = document.getElementById("separator_ddl");
     let dialect_name = drop_down_list.options[drop_down_list.selectedIndex].value;
     let dialect_map = {'csv': [',', 'quoted'], 'tsv': ['\t', 'simple'], 'csv (semicolon)': [';', 'quoted'], 'csv (pipe)': ['|', 'simple']};
+    if (!selected_file || !dialect_map.hasOwnProperty(dialect_name)) {
+        // TODO Show error
+        return;
+    }
     let [delim, policy] = dialect_map[dialect_name];
+    var reader = new FileReader();
     reader.onload = function(e) {
         let table_text = reader.result; 
         do_load_table(table_text, delim, policy);
