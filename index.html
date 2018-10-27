@@ -150,7 +150,7 @@ td {
     border: 2px solid black;
 }
 
-#table_control_group {
+.table_control_group {
     max-width: 75%;
 }
 
@@ -325,12 +325,12 @@ input {
     <h1 id="demo">
         RBQL Web Demo 
     </h1>
+    <div class="table_control_group">
+        <span>Use the default test table below (reduced version of <a href="https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset">kaggle imdb-5000</a>) or "upload" your own.<span><br>
+        <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
+        <button class="dark_button" id="open_custom_table_dialog">Select another table from disk... (optional)</button>
+    </div>
     <div id="input_group">
-        <div id="table_control_group">
-            <span>Use the default test table below (reduced version of <a href="https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset">kaggle imdb-5000</a>) or "upload" your own.<span><br>
-            <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
-            <button class="dark_button" id="open_custom_table_dialog">Select another table from disk... (optional)</button>
-        </div>
         <div id="input_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table</span></div>
         <div class="table_group">
             <table id="preview_table">
@@ -343,9 +343,7 @@ input {
         </div>
     </div>
     <div id="output_group">
-        <div id="table_control_group">
-            <button class="dark_button" id="save_result_table">Save result file to disk</button>
-        </div>
+        <button class="dark_button" id="save_result_table">Save result file to disk</button>
         <div id="output_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but you can save the whole result table to disk</span></div>
         <div class="table_group">
             <table id="output_table">
