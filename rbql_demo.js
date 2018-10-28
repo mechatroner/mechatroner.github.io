@@ -22,6 +22,9 @@ let last_output_lines = null;
 
 // Functions:
 
+// FIXME make examples hidden by default - user can fold / unfold them
+
+
 function WebEmulationError(message) {
    this.message = message;
    this.name = 'WebEmulationError';
@@ -252,11 +255,15 @@ function make_run_button_group(chain_index) {
 
 
 function make_next_chained_table(records, data_lines) {
+    let table_group = document.createElement('div');
     if (records.length == 0) {
-        // FIXME handle empty table - check how it looks like
+        let empty_table_msg = document.createElement('span');
+        empty_table_msg.textContent = 'Result table is empty';
+        table_group.appendChild(empty_table_msg);
+        table_chain.push({'data_lines': [], 'root_node': table_group});
+        document.getElementById('table_chain_holder').appendChild(table_group);
         return;
     }
-    let table_group = document.createElement('div');
     let table_window = document.createElement('div');
     table_window.setAttribute('class', 'table_window');
     let table = document.createElement('table');
