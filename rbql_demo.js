@@ -427,12 +427,11 @@ function start_rbql(src_chain_index) {
     let worker_text = null;
     try {
         worker_text = rbql.parse_to_js_almost_web('fake_src_path', 'fake_dst_path', [rbql_text], template_js_text, global_delim, global_policy, global_delim, global_policy, 'binary');
+        load_module_from_string('rbql_worker', worker_text);
     } catch (e) {
         show_error('RBQL parsing', get_error_message(e));
         return;
     }
-    // FIXME catch syntax errors here!!!
-    load_module_from_string('rbql_worker', worker_text);
     rbql_worker.run_on_node(handle_rbql_worker_success, handle_rbql_worker_error);
     let input_lines = table_chain[src_chain_index]['data_lines'];
     for (let i = 0; i < input_lines.length; i++) {
