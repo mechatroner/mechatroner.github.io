@@ -352,6 +352,7 @@ input {
         <br>
         <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT top 10 * WHERE a7.indexOf('Sci-Fi') != -1 &amp;&amp; a4 &gt; 2010 order by parseInt(a4), parseInt(a8) desc</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; simple query </span></div>
         <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT a1, a2, a4 WHERE parseInt(a4) &gt; 2014 order by a1</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; actually no need for "parseInt()" here, just a reminder that column vars are strings</span></div>
+        <div style="margin-bottom:4px"><span class="code_snippet_small">select * order by Math.random()</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; random shuffle</span></div>
         <div style="margin-bottom:4px"><span class="code_snippet_small">select COUNT(*), a2 group by a2</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; an aggregate query</span></div>
         <div style="margin-bottom:4px"><span class="code_snippet_small">UPDATE SET a8 = a8 / 60</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; UPDATE is just a special type of SELECT</span></div>
         <div style="margin-bottom:4px"><span class="code_snippet_small">select top 20 NR, *</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; enumerate records</span></div>

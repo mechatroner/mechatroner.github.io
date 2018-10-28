@@ -23,6 +23,7 @@ let last_output_lines = null;
 // Functions:
 
 // FIXME make examples hidden by default - user can fold / unfold them
+// FIXME replace "GitHub" link in header with "About"
 
 
 function WebEmulationError(message) {
