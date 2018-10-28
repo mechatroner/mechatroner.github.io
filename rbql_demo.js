@@ -431,6 +431,7 @@ function start_rbql(src_chain_index) {
         show_error('RBQL parsing', get_error_message(e));
         return;
     }
+    // FIXME catch syntax errors here!!!
     load_module_from_string('rbql_worker', worker_text);
     rbql_worker.run_on_node(handle_rbql_worker_success, handle_rbql_worker_error);
     let input_lines = table_chain[src_chain_index]['data_lines'];
