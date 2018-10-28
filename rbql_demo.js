@@ -1,18 +1,26 @@
+// Constants:
+
 var rbql_utils = null;
 var rbql = null;
 var rbql_worker = null;
 
-
 var template_js_text = null;
 
+var __dirname = 'fake_rbql_home_dir';
 
-var table_loaded = false;
+// State:
 
-var current_delim = null;
-var current_policy = null;
-var current_input_lines = null;
-var current_output_lines = null;
+var table_chain = [];
 
+var last_web_writer = null;
+var last_web_reader = null;
+
+var global_delim = null; // delim in policy are constants in chain
+var global_policy = null;
+
+let last_output_lines = null;
+
+// Functions:
 
 function WebEmulationError(message) {
    this.message = message;
@@ -24,12 +32,6 @@ function AssertionError(message) {
    this.message = message;
    this.name = 'AssertionError';
 }
-
-
-var __dirname = 'fake_rbql_home_dir';
-
-var last_web_writer = null;
-var last_web_reader = null;
 
 
 function assert(condition, message) {
@@ -54,11 +56,12 @@ function fake_module_path() {
 
 
 function WebWriter() {
+
     this.write = function(line) {
         if (line == '\n') {
             return;
         }
-        current_output_lines.push(line);
+        last_output_lines.push(line);
     }
 }
 
@@ -77,8 +80,10 @@ function WebReader() {
         }
     }
     this.close = function() {
-        this.closed = true;
-        this.close_callback();
+        if (!this.closed) {
+            this.closed = true;
+            this.close_callback();
+        }
     }
     this.feed_line = function(line) {
         this.line_callback(line);
@@ -112,7 +117,7 @@ function fake_module_readline() {
 
 
 function require(module_name_to_fake) {
-    // this is a fake require function
+    // Emulation of Node.js require() function
     if (module_name_to_fake == 'os') {
         return new fake_module_os(); 
     } else if (module_name_to_fake == 'path') {
@@ -195,13 +200,6 @@ function get_field_by_line_position(fields, query_pos) {
 }
 
 
-function remove_children(root_node) {
-    while (root_node.firstChild) {
-        root_node.removeChild(root_node.firstChild);
-    }
-}
-
-
 function append_cell(row, cell_text, params) {
     let cell = document.createElement('td');
     if (params['use_special_border']) {
@@ -217,28 +215,89 @@ function append_cell(row, cell_text, params) {
 }
 
 
-function make_preview_table(table, records, make_header) {
-    remove_children(table);
-    if (records.length == 0)
-        return;
-    if (make_header) {
-        let row = document.createElement('tr');
-        table.appendChild(row);
-        append_cell(row, 'NR', {'use_special_border': true, 'use_special_color': true});
-        for (let i = 0; i < records[0].length; i++) {
-            append_cell(row, `a${i + 1}`, {'use_special_border': true, 'use_special_color': true});
+function clean_table_chain(from_index) {
+    while (table_chain.length > from_index) {
+        let last_table = table_chain.pop();
+        let root_node = last_table['root_node'];
+        root_node.remove();
+    }
+}
+
+
+function create_save_click_handler(chain_index) {
+    return function() { save_result_table(chain_index); };
+}
+
+
+function make_run_button_group(chain_index) {
+    let proto_group = document.getElementById('proto_query_group');
+    let result = proto_group.cloneNode(true);
+    result.setAttribute('style', 'display: block');
+    result.id = `query_group_${chain_index}`;
+
+    let input_elem = result.getElementsByTagName('input')[0];
+    input_elem.id = `query_input_${chain_index}`;
+    input_elem.addEventListener("keyup", function(event) {
+        event.preventDefault();
+        if (event.keyCode == 13) {
+            start_rbql(chain_index);
         }
+    });
+
+    let button_elem = result.getElementsByTagName('button')[0];
+    button_elem.addEventListener('click', function() { start_rbql(chain_index); });
+
+    return result;
+}
+
+
+function make_next_chained_table(records, data_lines) {
+    if (records.length == 0) {
+        // FIXME handle empty table - check how it looks like
+        return;
+    }
+    let table_group = document.createElement('div');
+    let table_window = document.createElement('div');
+    table_window.setAttribute('class', 'table_window');
+    let table = document.createElement('table');
+    let warning_div = null;
+    if (records.length > 1000) {
+        records = records.slice(0, 1000);
+        let warning_div = document.createElement('div');
+        warning_div.setAttribute('class', 'table_cut_warning');
+        warning_div.textContent = 'Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table';
+    }
+    let row = document.createElement('tr');
+    table.appendChild(row);
+    append_cell(row, 'NR', {'use_special_border': true, 'use_special_color': true});
+    for (let i = 0; i < records[0].length; i++) {
+        append_cell(row, `a${i + 1}`, {'use_special_border': true, 'use_special_color': true});
     }
     for (var nr = 0; nr < records.length; nr++) {
         let row = document.createElement('tr');
         table.appendChild(row);
-        if (make_header) {
-            append_cell(row, nr + 1, {'use_special_border': true, 'use_special_color': false});
-        }
+        append_cell(row, nr + 1, {'use_special_border': true, 'use_special_color': false});
         for (var nf = 0; nf < records[nr].length; nf++) {
             append_cell(row, records[nr][nf], {'use_special_border': false, 'use_special_color': false});
         }
     }
+    let save_button = null;
+    if (table_chain.length) {
+        save_button = document.createElement('button');
+        save_button.setAttribute('class', 'dark_button');
+        save_button.textContent = 'Save result table to disk';
+        save_button.addEventListener("click", create_save_click_handler(table_chain.length));
+    }
+    table_window.appendChild(table);
+
+    if (warning_div)
+        table_group.appendChild(warning_div);
+    if (save_button)
+        table_group.appendChild(save_button);
+    table_group.appendChild(table_window);
+    table_group.appendChild(make_run_button_group(table_chain.length));
+    table_chain.push({'data_lines': data_lines, 'root_node': table_group});
+    document.getElementById('table_chain_holder').appendChild(table_group);
 }
 
 
@@ -251,19 +310,19 @@ function strip_cr(line) {
 
 
 function do_load_table(file_text, delim, policy) {
-    current_delim = delim;
-    current_policy = policy;
-    table_loaded = false;
+    global_delim = delim;
+    global_policy = policy;
+    clean_table_chain(0);
     var lines = file_text.split('\n');
     var records = [];
-    current_input_lines = [];
+    let loaded_lines = [];
     var warning_line = null;
     for (var r = 0; r < lines.length; ++r) {
         let line = lines[r];
         line = strip_cr(line);
         if (r + 1 == lines.length && line.length == 0)
             break;
-        current_input_lines.push(line);
+        loaded_lines.push(line);
         var report = smart_split(line, delim, policy);
         var fields = report[0];
         var warning = report[1];
@@ -275,15 +334,7 @@ function do_load_table(file_text, delim, policy) {
     if (warning_line != null) {
         show_warnings('Input file has quoting issues', ['Double quotes usage is not consistent at some lines. E.g. at line ' + warning_line]);
     }
-    var table = document.getElementById('preview_table');
-    if (records.length > 1000) {
-        document.getElementById('input_cut_warning').style.display = 'block';
-        records = records.slice(0, 1000);
-    } else {
-        document.getElementById('input_cut_warning').style.display = 'none';
-    }
-    make_preview_table(table, records, true);
-    table_loaded = true;
+    make_next_chained_table(records, loaded_lines);
 }
 
 
@@ -344,19 +395,11 @@ function handle_rbql_worker_success(warnings) {
         let hr_warnings = rbql.make_warnings_human_readable(warnings);
         show_warnings('RBQL Query has finished with Warnings', hr_warnings);
     }
-    var table = document.getElementById('output_table');
     var records = [];
-    for (var i = 0; i < current_output_lines.length; i++) {
-        records.push(smart_split(current_output_lines[i], current_delim, current_policy)[0]);
+    for (var i = 0; i < last_output_lines.length; i++) {
+        records.push(smart_split(last_output_lines[i], global_delim, global_policy)[0]);
     }
-    if (records.length > 1000) {
-        document.getElementById('output_cut_warning').style.display = 'block';
-        records = records.slice(0, 1000);
-    } else {
-        document.getElementById('output_cut_warning').style.display = 'none';
-    }
-    make_preview_table(table, records, false);
-    document.getElementById('output_group').style.display = 'block';
+    make_next_chained_table(records, last_output_lines);
 }
 
 
@@ -372,25 +415,27 @@ function get_error_message(error) {
 }
 
 
-function start_rbql() {
-    document.getElementById('output_group').style.display = 'none';
-    var rbql_text = document.getElementById('rbql_input').value;
+function start_rbql(src_chain_index) {
+    console.log('starting rbql for chain index: ' + src_chain_index);
+    clean_table_chain(src_chain_index + 1);
+    var rbql_text = document.getElementById(`query_input_${src_chain_index}`).value;
     if (!rbql_text)
         return;
-    current_output_lines = [];
+    last_output_lines = [];
     last_web_writer = new WebWriter();
     last_web_reader = new WebReader();
     let worker_text = null;
     try {
-        worker_text = rbql.parse_to_js_almost_web('fake_src_path', 'fake_dst_path', [rbql_text], template_js_text, current_delim, current_policy, current_delim, current_policy, 'binary');
+        worker_text = rbql.parse_to_js_almost_web('fake_src_path', 'fake_dst_path', [rbql_text], template_js_text, global_delim, global_policy, global_delim, global_policy, 'binary');
     } catch (e) {
         show_error('RBQL parsing', get_error_message(e));
         return;
     }
     load_module_from_string('rbql_worker', worker_text);
     rbql_worker.run_on_node(handle_rbql_worker_success, handle_rbql_worker_error);
-    for (let i = 0; i < current_input_lines.length; i++) {
-        let line = current_input_lines[i];
+    let input_lines = table_chain[src_chain_index]['data_lines'];
+    for (let i = 0; i < input_lines.length; i++) {
+        let line = input_lines[i];
         if (last_web_reader.closed) {
             console.log(`last web reader was closed at line ${i}`);
             break;
@@ -431,10 +476,10 @@ function hide_error_msg() {
 }
 
 
-function save_result_table() {
-    let output_lines = [];
-    var file_content = current_output_lines.join('\r\n')
-    var blob = new Blob([file_content], {type: "text/plain;charset=utf-8"});
+function save_result_table(chain_index) {
+    let data_lines = table_chain[chain_index]['data_lines'];
+    let file_content = data_lines.join('\r\n')
+    let blob = new Blob([file_content], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "rbql_output.txt");
 }
 
@@ -456,7 +501,6 @@ function process_submit() {
     let dialect_name = drop_down_list.options[drop_down_list.selectedIndex].value;
     let dialect_map = {'csv': [',', 'quoted'], 'tsv': ['\t', 'simple'], 'csv (semicolon)': [';', 'quoted'], 'csv (pipe)': ['|', 'simple']};
     if (!selected_file || !dialect_map.hasOwnProperty(dialect_name)) {
-        // TODO Show error
         return;
     }
     let [delim, policy] = dialect_map[dialect_name];
@@ -471,22 +515,13 @@ function process_submit() {
 
 
 function after_load() {
-    if (rbql === null || rbql_utils === null || template_js_text === null || !table_loaded)
+    if (rbql === null || rbql_utils === null || template_js_text === null || !table_chain.length)
         return;
 
-    document.getElementById("rbql_run_btn").addEventListener("click", start_rbql);
     document.getElementById("ack_error").addEventListener("click", hide_error_msg);
     document.getElementById("open_custom_table_dialog").addEventListener("click", open_custom_table_dialog);
-    document.getElementById("save_result_table").addEventListener("click", save_result_table);
     document.getElementById("tableSubmit").addEventListener("click", process_submit);
     document.getElementById("cancelSubmit").addEventListener("click", close_custom_table_dialog);
-    //document.getElementById("rbql_input").focus();
-    document.getElementById("rbql_input").addEventListener("keyup", function(event) {
-        event.preventDefault();
-        if (event.keyCode == 13) {
-            start_rbql();
-        }
-    });
 }
 
 

@@ -142,7 +142,7 @@ td {
     padding: 3px 8px;
 }
 
-.table_group {
+.table_window {
     margin-top: 10px;
     max-width: 75%;
     max-height: 400px;
@@ -158,7 +158,7 @@ td {
     display: none;
 }
 
-#rbql_query_group {
+.rbql_query_group {
     margin-top: 20px;
     margin-bottom: 20px;
 }
@@ -176,7 +176,7 @@ input {
     margin-top: 12px;
 }
 
-#rbql_run_btn {
+.rbql_run_btn {
     width: 70px;
     background-color: #4CAF50;
     display: inline-block;
@@ -330,25 +330,7 @@ input {
         <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
         <button class="dark_button" id="open_custom_table_dialog">Select another table from disk... (optional)</button>
     </div>
-    <div id="input_group">
-        <div id="input_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table</span></div>
-        <div class="table_group">
-            <table id="preview_table">
-            </table>
-        </div>
-        <div id="rbql_query_group">
-            <div style="margin-bottom: 4px"><span>Input SQL-like RBQL query and press Enter. Use <span class="color_span">a1</span>, <span class="color_span">a2</span>, <span class="color_span">a3</span>, ... and <span class="color_span">NR</span> as column names.</span></div>
-            <input type="text" size="90" id="rbql_input" placeholder="select ... where ... order by ... limit ... ">
-            <button id="rbql_run_btn">Run</button>
-        </div>
-    </div>
-    <div id="output_group">
-        <button class="dark_button" id="save_result_table">Save result file to disk</button>
-        <div id="output_cut_warning" class="table_cut_warning"><span>Warning. Table is too big: showing only top 1000 entries, but you can save the whole result table to disk</span></div>
-        <div class="table_group">
-            <table id="output_table">
-            </table>
-        </div>
+    <div id="table_chain_holder">
     </div>
 </div>
 
@@ -377,6 +359,11 @@ input {
 </div>
 
 
+<div class="rbql_query_group" id="proto_query_group" style="display:none">
+    <div style="margin-bottom: 4px"><span>Input SQL-like RBQL query and press Enter. Use <span class="color_span">a1</span>, <span class="color_span">a2</span>, <span class="color_span">a3</span>, ... and <span class="color_span">NR</span> as column names.</span></div>
+    <input type="text" size="90" placeholder="select ... where ... order by ... limit ... ">
+    <button class="rbql_run_btn">Run</button>
+</div>
 
 
 <div id="rbql_error_message">
