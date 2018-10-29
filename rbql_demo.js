@@ -203,15 +203,26 @@ function get_field_by_line_position(fields, query_pos) {
 }
 
 
-function append_data_cell(row, cell_text, border_style) {
+function append_data_cell(row, cell_text, is_first) {
     let cell = document.createElement('td');
-    cell.style.border = border_style;
+    if (is_first) {
+        cell.style.borderRight = '1px solid red';
+        cell.style.borderTop = '1px solid black';
+    } else {
+        cell.style.borderRight = '1px solid black';
+        cell.style.borderTop = '1px solid black';
+    }
     cell.textContent = cell_text;
     row.appendChild(cell);
 }
 
-function append_header_cell(row, cell_text) {
+function append_header_cell(row, cell_text, is_first) {
     let cell = document.createElement('th');
+    if (is_first) {
+        cell.style.borderRight = '1px solid red';
+    } else {
+        cell.style.borderRight = '1px solid black';
+    }
     cell.textContent = cell_text;
     row.appendChild(cell);
 }
@@ -276,9 +287,9 @@ function make_next_chained_table(records, data_lines) {
     }
     let header_section = document.createElement('thead');
     let row = document.createElement('tr');
-    append_header_cell(row, 'NR');
+    append_header_cell(row, 'NR', true);
     for (let i = 0; i < records[0].length; i++) {
-        append_header_cell(row, `a${i + 1}`);
+        append_header_cell(row, `a${i + 1}`, false);
     }
     header_section.appendChild(row);
     table.appendChild(header_section);
@@ -286,9 +297,9 @@ function make_next_chained_table(records, data_lines) {
     for (var nr = 0; nr < records.length; nr++) {
         let row = document.createElement('tr');
         data_section.appendChild(row);
-        append_data_cell(row, nr + 1, '1px solid red');
+        append_data_cell(row, nr + 1, true);
         for (var nf = 0; nf < records[nr].length; nf++) {
-            append_data_cell(row, records[nr][nf], '1px solid black');
+            append_data_cell(row, records[nr][nf], false);
         }
     }
     table.appendChild(data_section);
