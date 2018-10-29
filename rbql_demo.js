@@ -20,11 +20,10 @@ var global_policy = null;
 
 let last_output_lines = null;
 
+
+// TODO replace "GitHub" link in header with "About"
+
 // Functions:
-
-// FIXME make examples hidden by default - user can fold / unfold them
-// FIXME replace "GitHub" link in header with "About"
-
 
 function WebEmulationError(message) {
    this.message = message;
@@ -204,16 +203,15 @@ function get_field_by_line_position(fields, query_pos) {
 }
 
 
-function append_cell(row, cell_text, params) {
+function append_data_cell(row, cell_text, border_style) {
     let cell = document.createElement('td');
-    if (params['use_special_border']) {
-        cell.style.border = '1px solid red';
-    } else {
-        cell.style.border = '1px solid #4A5646';
-    }
-    if (params['use_special_color']) {
-        cell.style.color = '#FF6868';
-    }
+    cell.style.border = border_style;
+    cell.textContent = cell_text;
+    row.appendChild(cell);
+}
+
+function append_header_cell(row, cell_text) {
+    let cell = document.createElement('th');
     cell.textContent = cell_text;
     row.appendChild(cell);
 }
@@ -256,6 +254,7 @@ function make_run_button_group(chain_index) {
 
 
 function make_next_chained_table(records, data_lines) {
+    // http://jsfiddle.net/mmavko/2ysb0hmf/   - sticky trick example
     let table_group = document.createElement('div');
     if (records.length == 0) {
         let empty_table_msg = document.createElement('span');
@@ -275,20 +274,24 @@ function make_next_chained_table(records, data_lines) {
         warning_div.setAttribute('class', 'table_cut_warning');
         warning_div.textContent = 'Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table';
     }
+    let header_section = document.createElement('thead');
     let row = document.createElement('tr');
-    table.appendChild(row);
-    append_cell(row, 'NR', {'use_special_border': true, 'use_special_color': true});
+    append_header_cell(row, 'NR');
     for (let i = 0; i < records[0].length; i++) {
-        append_cell(row, `a${i + 1}`, {'use_special_border': true, 'use_special_color': true});
+        append_header_cell(row, `a${i + 1}`);
     }
+    header_section.appendChild(row);
+    table.appendChild(header_section);
+    let data_section = document.createElement('tbody');
     for (var nr = 0; nr < records.length; nr++) {
         let row = document.createElement('tr');
-        table.appendChild(row);
-        append_cell(row, nr + 1, {'use_special_border': true, 'use_special_color': false});
+        data_section.appendChild(row);
+        append_data_cell(row, nr + 1, '1px solid red');
         for (var nf = 0; nf < records[nr].length; nf++) {
-            append_cell(row, records[nr][nf], {'use_special_border': false, 'use_special_color': false});
+            append_data_cell(row, records[nr][nf], '1px solid black');
         }
     }
+    table.appendChild(data_section);
     let save_button = null;
     if (table_chain.length) {
         save_button = document.createElement('button');
