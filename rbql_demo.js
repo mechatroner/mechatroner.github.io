@@ -205,12 +205,10 @@ function get_field_by_line_position(fields, query_pos) {
 
 function append_data_cell(row, cell_text, is_first) {
     let cell = document.createElement('td');
+    cell.style.borderRight = '1px solid black';
+    cell.style.borderTop = '1px solid black';
     if (is_first) {
-        cell.style.borderRight = '1px solid red';
-        cell.style.borderTop = '1px solid black';
-    } else {
-        cell.style.borderRight = '1px solid black';
-        cell.style.borderTop = '1px solid black';
+        cell.style.backgroundColor = '#E5E5E5';
     }
     cell.textContent = cell_text;
     row.appendChild(cell);
@@ -218,11 +216,7 @@ function append_data_cell(row, cell_text, is_first) {
 
 function append_header_cell(row, cell_text, is_first) {
     let cell = document.createElement('th');
-    if (is_first) {
-        cell.style.borderRight = '1px solid red';
-    } else {
-        cell.style.borderRight = '1px solid black';
-    }
+    cell.style.borderRight = '1px solid black';
     cell.textContent = cell_text;
     row.appendChild(cell);
 }
@@ -287,9 +281,9 @@ function make_next_chained_table(records, data_lines) {
     }
     let header_section = document.createElement('thead');
     let row = document.createElement('tr');
-    append_header_cell(row, 'NR', true);
+    append_header_cell(row, 'NR');
     for (let i = 0; i < records[0].length; i++) {
-        append_header_cell(row, `a${i + 1}`, false);
+        append_header_cell(row, `a${i + 1}`);
     }
     header_section.appendChild(row);
     table.appendChild(header_section);
