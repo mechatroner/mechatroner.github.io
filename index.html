@@ -27,6 +27,10 @@ body {
     margin-top: 0px;
     margin-bottom: 0px;
     font-size: 18px;
+    text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    -ms-text-size-adjust: none;
 }
 
 
@@ -72,13 +76,13 @@ li {
     margin-bottom: 10px;
 }
 
+
 .code_snippet {
-    padding: 8px;
-    white-space: nowrap;
     background: #F1F1F1;
     border: 1px solid #E1E1E1;
+    margin-bottom: 20px;
+    padding: 8px;
     border-radius: 4px; 
-    display: inline-block;
     font-family: "Lucida Console", Monaco, monospace;
 }
 
@@ -354,8 +358,6 @@ input {
         <br>
         <br>
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
-        <br>
-        <br>
         <span class="generic_description">
         Combination of SQL statements and expressions from a different language makes RBQL very easy to learn and use: you just need basic understanding of SQL and one of the available general-purpose backend languages. So there is a high chance that you alread know RBQL!
         <br>
