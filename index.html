@@ -353,16 +353,16 @@ input {
     </h1>
     <div class="description_paragraph">
         <span class="generic_description">
-        RBQL is a technology which provides SQL-like language that supports SELECT and UPDATE queries. It is an ideal tool for data-transformation and data-analysis tasks on small and medium-sized data sets. RBQL query is executed using one of the backend languages. Currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g for JavaScript backend:
+        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries on small and medium-sized data sets. RBQL query is executed using a general-purpose "backend" language: currently &quot;Python&quot; and &quot;Javascript&quot; are available, but more backend languages can be added in the future. RBQL multi-backend design alows usage of non-SQL expressions inside SQL statements, e.g for JavaScript backend:
         </span>
         <br>
         <br>
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
         <span class="generic_description">
-        Combination of SQL statements and expressions from a different language makes RBQL very easy to learn and use: you just need basic understanding of SQL and one of the available general-purpose backend languages. So there is a high chance that you alread know RBQL!
+        Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use: you just need basic understanding of SQL and one of the available backend languages. So there is a high chance that you alread know RBQL! The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature.
         <br>
         <br>
-        RBQL has minimalistic modular design and zero dependencies, the only thing it needs is presence of the backend language interpreter/compiler. To use RBQL with Python you need to have python installed in your system, and to use RBQL with JavaScript you need Node.js
+        RBQL has simple modular design and zero dependencies. To use RBQL with Python you need to have python interpreter installed in your system, and to use RBQL with JavaScript you need Node.js
         </span>
     </div>
 
