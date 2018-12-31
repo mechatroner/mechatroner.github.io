@@ -254,7 +254,7 @@ input {
 }
 
 .dark_button {
-    background-color: #4A5646;
+    background-color: #5A5A5A;
     display: block;
     border:none;
     font-size: 18px;
@@ -405,10 +405,12 @@ input {
         </div>
     </div>
     <div class="table_control_group">
-        <span>Use the default test table below (reduced version of <a href="https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset">kaggle imdb-5000</a>) or "upload" your own.<span><br>
-        <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
-        <span>Every query result is a first-class table.</span>
-        <button class="dark_button" id="open_custom_table_dialog">Select another table from disk... (optional)</button>
+        <div>
+            <span>Use the default test table below (reduced version of <a href="https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset">kaggle imdb-5000</a>) or "upload" your own.<span><br>
+            <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
+            <span>Every query result is a first-class table.</span>
+        </div>
+        <button class="dark_button" id="open_custom_table_dialog" style="display: inline-block">Upload...</button><span>&nbsp;&nbsp;&mdash; Select another table from disk (optional)</span>
     </div>
     <div id="table_chain_holder">
     </div>
