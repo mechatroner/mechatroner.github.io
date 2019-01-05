@@ -234,22 +234,25 @@ input {
 
 #examples_block {
     background-color: #FFE2CC;
-    padding: 4px;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
 }
 
 
-#show_examples_button {
+.expandable_button {
     background-color: #FFE2CC;
     display: block;
     border:none;
     font-size: 18px;
     height: 28px;
     cursor:pointer;
-    width:100%;
     text-align: left;
     outline: none;
+    margin-top: 10px;
 }
-#show_examples_button:hover {
+.expandable_button:hover {
     background-color: #CC8B00;
 }
 
@@ -360,10 +363,11 @@ input {
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
         <span class="generic_description">
         Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use, you just need basic understanding of SQL and one of the available backend languages. Maybe you already know RBQL!
-        <br>
+        </span>
         The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature.
         <br>
         <br>
+        <span class="generic_description">
         RBQL has simple modular design and zero dependencies. To use RBQL with Python backend you need python interpreter installed, for JavaScript backend you need Node.js
         </span>
     </div>
@@ -372,12 +376,15 @@ input {
         RBQL is available for the following platforms:
         <ul>
         <li><a href="#demo">Online Web Demo</a> - Try It Now!</li>
-        <li><a href="https://pypi.org/project/rbql/">rbql-py</a> CLI App for Python (PyPI)</li>
-        <li><a href="https://www.npmjs.com/package/rbql">rbql-js</a> CLI App for Node.js (npm)</li>
+        <li><a href="https://pypi.org/project/rbql/">rbql-py</a> CLI App for Python - PyPI</li>
+        <li><a href="https://www.npmjs.com/package/rbql">rbql-js</a> CLI App for Node.js - npm</li>
         <li><a href="https://github.com/mechatroner/rainbow_csv">Rainbow CSV</a> extension for Vim editor</li>
         <li><a href="https://marketplace.visualstudio.com/items?itemName=mechatroner.rainbow-csv">Rainbow CSV</a> extension for Visual Studio Code editor</li>
         <li><a href="https://packagecontrol.io/packages/rainbow_csv">Rainbow CSV</a> extension for Sublime Text 3 editor</li>
         </ul>
+    </div>
+    <div class="description_paragraph">
+        <button class="expandable_button" id="show_explanation_button">+&nbsp;&nbsp;How RBQL works internally: Explanation</button>
     </div>
 </div>
 
@@ -390,8 +397,7 @@ input {
         <span class="generic_description">
         In this Web Demo only Java Script backend is available.<br>
         </span>
-        <br>
-        <button id="show_examples_button">+&nbsp;&nbsp;Show Query Examples</button>
+        <button class="expandable_button" id="show_examples_button">+&nbsp;&nbsp;Show Query Examples</button>
         <div id="examples_block" style="display:none">
             <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT top 10 * WHERE a7.indexOf('Sci-Fi') != -1 &amp;&amp; a4 &gt; 2010 order by parseInt(a4), parseInt(a8) desc</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Simple query </span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT a1, a2, a4 WHERE parseInt(a4) &gt; 2014 order by a1</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Actually no need for "parseInt()" here, just a reminder that column vars are strings</span></div>
@@ -406,7 +412,7 @@ input {
     </div>
     <div class="table_control_group">
         <div>
-            <span>Use the default test table below (reduced version of <a href="https://www.kaggle.com/carolzhangdc/imdb-5000-movie-dataset">kaggle imdb-5000</a>) or "upload" your own.<span><br>
+            <span>Use the default test table below or "upload" your own.<span><br>
             <span>Your data is safe: selected table doesn't actualy get uploaded anywhere - all operations are performed locally in the browser.</span><br>
             <span>Every query result is a first-class table.</span>
         </div>
