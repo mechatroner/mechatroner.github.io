@@ -13,7 +13,7 @@
 </script>
 
 <!-- explanation of version hack: https://stackoverflow.com/questions/32414/how-can-i-force-clients-to-refresh-javascript-files -->
-<script src="rbql_demo.js?version=8"></script>
+<script src="rbql_demo.js?version=9"></script>
 <script src="FileSaver.js"></script>
 
 <title>RBQL - RainBow Query Language</title>
@@ -55,9 +55,6 @@ body {
     position: relative;
 }
 
-.generic_description {
-}
-
 .content_group {
     margin-left: 40px;
     margin-top: 60px;
@@ -80,7 +77,8 @@ li {
 .code_snippet {
     background: #F1F1F1;
     border: 1px solid #E1E1E1;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+    margin-top: 12px;
     padding: 8px;
     border-radius: 4px; 
     font-family: "Lucida Console", Monaco, monospace;
@@ -232,7 +230,7 @@ input {
     outline: none;
 }
 
-#examples_block {
+.expandable_block {
     background-color: #FFE2CC;
     padding-top: 10px;
     padding-bottom: 5px;
@@ -355,21 +353,13 @@ input {
         RBQL - RainBow Query Language
     </h1>
     <div class="description_paragraph">
-        <span class="generic_description">
         RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries on small and medium-sized data sets. RBQL query is executed using a general-purpose "backend" language (currently it is Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
-        </span>
-        <br>
-        <br>
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
-        <span class="generic_description">
         Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use, you just need basic understanding of SQL and one of the available backend languages. Maybe you already know RBQL!
-        </span>
         The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature.
         <br>
         <br>
-        <span class="generic_description">
         RBQL has simple modular design and zero dependencies. To use RBQL with Python backend you need python interpreter installed, for JavaScript backend you need Node.js
-        </span>
     </div>
 
     <div class="description_paragraph">
@@ -385,6 +375,56 @@ input {
     </div>
     <div class="description_paragraph">
         <button class="expandable_button" id="show_explanation_button">+&nbsp;&nbsp;How RBQL works internally: Explanation</button>
+        <div class="expandable_block" id="explanation_block" style="display:none">
+            RBQL parses SQL-like user query, creates a new python or JavaScript worker module, then imports and executes it.
+            <br>
+            <br>
+            Explanation of simplified Python version of RBQL algorithm by example.
+            <br>
+            User enters the following query, which is stored as a string Q:
+            <div class="code_snippet">
+                SELECT a3, int(a4) + 100, len(a2) WHERE a1 != 'SELL'
+            </div>
+            RBQL replaces all a{i} substrings in the query string Q with a[{i - 1}] substrings. The result is the following string:
+            <div class="code_snippet">
+                Q = "SELECT a[2], int(a[3]) + 100, len(a[1]) WHERE a[0] != 'SELL'"
+            </div>
+            RBQL searches for "SELECT" and "WHERE" keywords in the query string Q, throws the keywords away, and puts everything after these keywords into two variables S - select part and W - where part, so we will get:
+            <div class="code_snippet">
+                S = "a[2], int(a[3]) + 100, len(a[1])"
+                <br>
+                W = "a[0] != 'SELL'"
+            </div>
+            RBQL has static template script which looks like this:
+            <div class="code_snippet">
+                for line in sys.stdin:
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;a = line.rstrip('\n').split('\t')
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;if %%%W_Expression%%%:
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;out_fields = [%%%S_Expression%%%]
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print '\t'.join([str(v) for v in out_fields])
+            </div>
+            RBQL replaces %%%W_Expression%%% with W and %%%S_Expression%%% with S so we get the following script:
+            <div class="code_snippet">
+                for line in sys.stdin:
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;a = line.rstrip('\n').split('\t')
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;if a[0] != 'SELL':
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;out_fields = [a[2], int(a[3]) + 100, len(a[1])]
+                <br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print '\t'.join([str(v) for v in out_fields])
+            </div>
+            RBQL runs the patched script against user's data file:
+            <div class="code_snippet">
+                ./tmp_script.py &lt; data.tsv &gt; result.tsv
+            </div>
+            Result set of the original query (SELECT a3, int(a4) + 100, len(a2) WHERE a1 != 'SELL') is in the "result.tsv" file. It is clear that this simplified version can only work with tab-separated files.
+        </div>
     </div>
 </div>
 
@@ -394,11 +434,9 @@ input {
         RBQL Web Demo 
     </h1>
     <div class="description_paragraph">
-        <span class="generic_description">
         In this Web Demo only Java Script backend is available.<br>
-        </span>
         <button class="expandable_button" id="show_examples_button">+&nbsp;&nbsp;Show Query Examples</button>
-        <div id="examples_block" style="display:none">
+        <div class="expandable_block" id="examples_block" style="display:none">
             <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT top 10 * WHERE a7.indexOf('Sci-Fi') != -1 &amp;&amp; a4 &gt; 2010 order by parseInt(a4), parseInt(a8) desc</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Simple query </span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT a1, a2, a4 WHERE parseInt(a4) &gt; 2014 order by a1</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Actually no need for "parseInt()" here, just a reminder that column vars are strings</span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">select * order by Math.random()</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Random shuffle</span></div>

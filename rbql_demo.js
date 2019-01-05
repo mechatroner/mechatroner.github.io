@@ -530,16 +530,17 @@ function process_submit() {
 }
 
 
-function show_examples_toggle() {
-    let examples_block = document.getElementById('examples_block');
-    if (examples_block.style.display == 'none') {
-        document.getElementById('show_examples_button').style.backgroundColor = '#CC8B00';
-        examples_block.style.display = 'block';
+function toggle_expandable_block(button_id, block_id) {
+    let block = document.getElementById(block_id);
+    if (block.style.display == 'none') {
+        document.getElementById(button_id).style.backgroundColor = '#CC8B00';
+        block.style.display = 'block';
     } else {
-        document.getElementById('show_examples_button').style.backgroundColor = '#FFE2CC';
-        examples_block.style.display = 'none';
+        document.getElementById(button_id).style.backgroundColor = '#FFE2CC';
+        block.style.display = 'none';
     }
 }
+
 
 
 function after_load() {
@@ -550,7 +551,8 @@ function after_load() {
     document.getElementById("open_custom_table_dialog").addEventListener("click", open_custom_table_dialog);
     document.getElementById("tableSubmit").addEventListener("click", process_submit);
     document.getElementById("cancelSubmit").addEventListener("click", close_custom_table_dialog);
-    document.getElementById("show_examples_button").addEventListener("click", show_examples_toggle);
+    document.getElementById("show_examples_button").addEventListener("click", () => { toggle_expandable_block('show_examples_button', 'examples_block'); });
+    document.getElementById("show_explanation_button").addEventListener("click", () => { toggle_expandable_block('show_explanation_button', 'explanation_block'); });
 }
 
 
