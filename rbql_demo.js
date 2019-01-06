@@ -99,7 +99,7 @@ function fake_module_fs() {
         throw new WebEmulationError('JOIN is not available in web mode');
     }
     this.existsSync = function(path) {
-        throw new WebEmulationError('JOIN is not available in web mode');
+        return false;
     }
     this.writeFileSync = function(path, data) {
         throw new WebEmulationError('JOIN is not available in web mode');
@@ -369,7 +369,8 @@ function load_default_table(callback_func) {
 
 
 function load_worker_template(callback_func) {
-    var local_url = 'template.js.raw';
+    // Explanation of version hack: https://stackoverflow.com/questions/19695843/problems-with-cached-result-when-sending-a-xmlhttprequest
+    var local_url = 'template.js.raw?version=12';
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == XMLHttpRequest.DONE) {
