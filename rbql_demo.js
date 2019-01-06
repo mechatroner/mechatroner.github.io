@@ -273,11 +273,12 @@ function make_next_chained_table(records, data_lines) {
     table_window.setAttribute('class', 'table_window');
     let table = document.createElement('table');
     let warning_div = null;
-    if (records.length > 1000) {
+    let whole_size = records.length;
+    if (whole_size > 1000) {
         records = records.slice(0, 1000);
-        let warning_div = document.createElement('div');
+        warning_div = document.createElement('div');
         warning_div.setAttribute('class', 'table_cut_warning');
-        warning_div.textContent = 'Warning. Table is too big: showing only top 1000 entries, but RBQL query will be applied to the whole original table';
+        warning_div.textContent = `Warning. Table is too big: showing only top 1000 entries, but the next RBQL query will be applied to the whole table (${whole_size} records)`;
     }
     let header_section = document.createElement('thead');
     let row = document.createElement('tr');
@@ -306,10 +307,10 @@ function make_next_chained_table(records, data_lines) {
     }
     table_window.appendChild(table);
 
-    if (warning_div)
-        table_group.appendChild(warning_div);
     if (save_button)
         table_group.appendChild(save_button);
+    if (warning_div)
+        table_group.appendChild(warning_div);
     table_group.appendChild(table_window);
     table_group.appendChild(make_run_button_group(table_chain.length));
     table_chain.push({'data_lines': data_lines, 'root_node': table_group});
