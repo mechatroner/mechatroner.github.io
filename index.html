@@ -351,11 +351,9 @@ input {
     <h1>
         RBQL - RainBow Query Language
     </h1>
-    <!-- FIXME mention: -->
-    <!-- * Supported keywords -->
     <!-- FIXME spell check -->
     <div class="description_paragraph">
-        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries for structured data like CSV or TSV files. RBQL query is executed using one of the available general-purpose "backend" languages (currently Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
+        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries for structured data (like CSV or TSV files). RBQL query is executed using one of the available general-purpose "backend" languages (currently Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
         Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use, you just need basic understanding of SQL and one of the available backend languages. Maybe you already know RBQL!
         The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature.
@@ -376,6 +374,11 @@ input {
         </ul>
     </div>
     <div class="description_paragraph">
+        RBQL supports all main SQL keywords: SELECT, UPDATE, WHERE, ORDER BY, JOIN, DISTINCT, GROUP BY, TOP, LIMIT, ...
+        <br>
+        ... And also some new cool features that traditional SQL engines do not provide! (And probably never will)
+        <br>
+        <br>
         RBQL implementation is based on a clever hack, see the explanation below if you are curious.
         <button class="expandable_button" id="show_explanation_button">+&nbsp;&nbsp;How RBQL works: Explanation</button>
         <div class="expandable_block" id="explanation_block" style="display:none">
@@ -398,7 +401,7 @@ input {
                 <br>
                 W = "a[0] != 'SELL'"
             </div>
-            RBQL has static template script which looks like this:
+            RBQL has a static template script which looks like this:
             <div class="code_snippet">
                 for line in sys.stdin:
                 <br>
