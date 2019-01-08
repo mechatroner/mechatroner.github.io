@@ -351,14 +351,17 @@ input {
     <h1>
         RBQL - RainBow Query Language
     </h1>
+    <!-- FIXME mention: -->
+    <!-- * Supported keywords -->
+    <!-- FIXME spell check -->
     <div class="description_paragraph">
-        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries on small and medium-sized data sets. RBQL query is executed using a general-purpose "backend" language (currently it is Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
+        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries for structured data like CSV or TSV files. RBQL query is executed using one of the available general-purpose "backend" languages (currently Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
         Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use, you just need basic understanding of SQL and one of the available backend languages. Maybe you already know RBQL!
         The first word &quot;Rainbow&quot; in RBQL reflects it's diverse multi-language nature.
         <br>
         <br>
-        RBQL has simple modular design and zero dependencies. To use RBQL with Python backend you need python interpreter installed, for JavaScript backend you need Node.js
+        RBQL has simple modular design and no third-party dependencies. To use RBQL with Python backend you need python interpreter installed, for JavaScript backend you need Node.js
     </div>
 
     <div class="description_paragraph">
@@ -373,6 +376,7 @@ input {
         </ul>
     </div>
     <div class="description_paragraph">
+        RBQL implementation is based on a clever hack, see the explanation below if you are curious.
         <button class="expandable_button" id="show_explanation_button">+&nbsp;&nbsp;How RBQL works: Explanation</button>
         <div class="expandable_block" id="explanation_block" style="display:none">
             RBQL parses SQL-like user query, creates a new python or JavaScript worker module, then imports and executes it.
