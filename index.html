@@ -446,12 +446,12 @@ input {
             <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT top 10 * WHERE a7.indexOf('Sci-Fi') != -1 &amp;&amp; a4 &gt; 2010 order by parseInt(a4), parseInt(a8) desc</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Simple query </span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">SELECT a1, a2, a4 WHERE parseInt(a4) &gt; 2014 order by a1</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Actually no need for "parseInt()" here, just a reminder that column vars are strings</span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">select * order by Math.random()</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Random shuffle</span></div>
-            <div style="margin-bottom:4px"><span class="code_snippet_small">select COUNT(*), a2 group by a2</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; An aggregate query</span></div>
+            <div style="margin-bottom:4px"><span class="code_snippet_small">select COUNT(*), a2 group by a2</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Aggregate query</span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">UPDATE SET a8 = a8 / 60</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; UPDATE is just a special type of SELECT</span></div>
             <div style="margin-bottom:4px"><span class="code_snippet_small">select top 20 NR, *</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Enumerate records</span></div>
-            <div style="margin-bottom:4px"><span class="code_snippet_small">select JSON.stringify({name: a1, country: a2})</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Convert CSV to JSON records. How Cool is that? </span></div>
-            <div style="margin-bottom:4px"><span class="code_snippet_small">select `mv '${a1}.mp4' '${a4}_${a1.toLowerCase()}.mp4'`</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Make a bash script to rename files, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">this is a valid JS syntax</a></span></div>
-            <div style="margin-bottom:4px"><span class="code_snippet_small">select a1, a100</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; RBQL has warnings</span></div>
+            <div style="margin-bottom:4px"><span class="code_snippet_small">select JSON.stringify({name: a1, country: a2})</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Convert CSV to JSON records. How cool is that? </span></div>
+            <div style="margin-bottom:4px"><span class="code_snippet_small">select `mv '${a1}.mp4' '${a4}_${a1.toLowerCase()}.mp4'`</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; Make a bash script to rename files, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">this is valid JS syntax</a></span></div>
+            <div style="margin-bottom:4px"><span class="code_snippet_small">select a1, a100</span><span class="code_explanation_small">&nbsp;&nbsp;&mdash; RBQL has warnings!</span></div>
         </div>
     </div>
     <div class="table_control_group">
