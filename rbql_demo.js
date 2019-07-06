@@ -1,141 +1,7 @@
-// Constants:
-
-var rbql_utils = null;
-var rbql = null;
-var rbql_worker = null;
-
-var template_js_text = null;
-
-var __dirname = 'fake_rbql_home_dir';
-
-// State:
-
 var table_chain = [];
 
-var last_web_writer = null;
-var last_web_reader = null;
-
-var global_delim = null; // delim in policy are constants in chain
-var global_policy = null;
-
-let last_output_lines = null;
-
-
-// TODO replace "GitHub" link in header with "About"
-
-// Functions:
-
-function WebEmulationError(message) {
-   this.message = message;
-   this.name = 'WebEmulationError';
-}
-
-
-function AssertionError(message) {
-   this.message = message;
-   this.name = 'AssertionError';
-}
-
-
-function assert(condition, message) {
-    if (!condition) {
-        throw new AssertionError(message);
-    }
-}
-
-
-function fake_module_os() {
-    this.homedir = function() {
-        return 'fake_web_home_dir';
-    }
-}
-
-
-function fake_module_path() {
-    this.join = function(a, b) {
-        return `${a}/${b}`;
-    }
-}
-
-
-function WebWriter() {
-
-    this.write = function(line) {
-        if (line == '\n') {
-            return;
-        }
-        last_output_lines.push(line);
-    }
-}
-
-
-function WebReader() {
-    this.line_callback = null;
-    this.close_callback = null;
-    this.closed = false;
-    this.on = function(method, callback_func) {
-        assert(method == 'line' || method == 'close');
-        if (method == 'line') {
-            this.line_callback = callback_func;
-        }
-        if (method == 'close') {
-            this.close_callback = callback_func;
-        }
-    }
-    this.close = function() {
-        if (!this.closed) {
-            this.closed = true;
-            this.close_callback();
-        }
-    }
-    this.feed_line = function(line) {
-        this.line_callback(line);
-    }
-}
-
-
-function fake_module_fs() {
-    this.readFileSync = function(path, encoding) {
-        throw new WebEmulationError('JOIN is not available in web mode');
-    }
-    this.existsSync = function(path) {
-        return false;
-    }
-    this.writeFileSync = function(path, data) {
-        throw new WebEmulationError('JOIN is not available in web mode');
-    }
-    this.createReadStream = function(dummy_arg1, dummy_arg2) {
-        return null;
-    }
-    this.createWriteStream = function(dummy_arg1, dummy_arg2) {
-        return last_web_writer;
-    }
-}
-
-function fake_module_readline() {
-    this.createInterface = function(dummy_arg) {
-        return last_web_reader;
-    }
-}
-
-
-function require(module_name_to_fake) {
-    // Emulation of Node.js require() function
-    if (module_name_to_fake == 'os') {
-        return new fake_module_os(); 
-    } else if (module_name_to_fake == 'path') {
-        return new fake_module_path();
-    } else if (module_name_to_fake == 'fs') {
-        return new fake_module_fs();
-    } else if (module_name_to_fake == 'readline') {
-        return new fake_module_readline();
-    } else if (module_name_to_fake == `${__dirname}/rbql_utils.js`) {
-        return rbql_utils;
-    } else {
-        throw new WebEmulationError(`Unknown module: "${module_name_to_fake}"`);
-    }
-}
-
+// FIXME move non-split functions from csv_utils.js to rbql_csv.js and source it from index to get rid of code duplication
+// FIXME switch to npm and soure web_rbql.js and csv_utils.js from node_modules in index.html
 
 function extract_next_field(src, dlm, preserve_quotes, cidx, result) {
     var warning = false;
@@ -190,17 +56,13 @@ function smart_split(src, dlm, policy, preserve_quotes) {
 }
 
 
-function get_field_by_line_position(fields, query_pos) {
-    if (!fields.length)
-        return null;
-    var col_num = 0;
-    var cpos = fields[col_num].length + 1;
-    while (query_pos > cpos && col_num + 1 < fields.length) {
-        col_num += 1;
-        cpos = cpos + fields[col_num].length + 1;
+function strip_cr(line) {
+    if (line.charAt(line.length - 1) === '\r') {
+        return line.substring(0, line.length - 1);
     }
-    return col_num;
+    return line;
 }
+
 
 
 function append_data_cell(row, cell_text, is_first) {
@@ -214,7 +76,8 @@ function append_data_cell(row, cell_text, is_first) {
     row.appendChild(cell);
 }
 
-function append_header_cell(row, cell_text, is_first) {
+
+function append_header_cell(row, cell_text) {
     let cell = document.createElement('th');
     cell.style.borderRight = '1px solid black';
     cell.textContent = cell_text;
@@ -258,14 +121,14 @@ function make_run_button_group(chain_index) {
 }
 
 
-function make_next_chained_table(records, data_lines) {
+function make_next_chained_table(records) {
     // http://jsfiddle.net/mmavko/2ysb0hmf/   - sticky trick example
     let table_group = document.createElement('div');
     if (records.length == 0) {
         let empty_table_msg = document.createElement('span');
         empty_table_msg.textContent = 'Result table is empty';
         table_group.appendChild(empty_table_msg);
-        table_chain.push({'data_lines': [], 'root_node': table_group});
+        table_chain.push({'records': [], 'root_node': table_group});
         document.getElementById('table_chain_holder').appendChild(table_group);
         return;
     }
@@ -273,12 +136,11 @@ function make_next_chained_table(records, data_lines) {
     table_window.setAttribute('class', 'table_window');
     let table = document.createElement('table');
     let warning_div = null;
-    let whole_size = records.length;
-    if (whole_size > 1000) {
-        records = records.slice(0, 1000);
+    const max_table_size = 1000;
+    if (records.length > max_table_size) {
         warning_div = document.createElement('div');
         warning_div.setAttribute('class', 'table_cut_warning');
-        warning_div.textContent = `Warning. Table is too big: showing only top 1000 entries, but the next RBQL query will be applied to the whole table (${whole_size} records)`;
+        warning_div.textContent = `Warning. Table is too big: showing only top ${max_table_size} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`;
     }
     let header_section = document.createElement('thead');
     let row = document.createElement('tr');
@@ -289,7 +151,7 @@ function make_next_chained_table(records, data_lines) {
     header_section.appendChild(row);
     table.appendChild(header_section);
     let data_section = document.createElement('tbody');
-    for (var nr = 0; nr < records.length; nr++) {
+    for (var nr = 0; nr < records.length && nr < max_table_size; nr++) {
         let row = document.createElement('tr');
         data_section.appendChild(row);
         append_data_cell(row, nr + 1, true);
@@ -313,33 +175,21 @@ function make_next_chained_table(records, data_lines) {
         table_group.appendChild(warning_div);
     table_group.appendChild(table_window);
     table_group.appendChild(make_run_button_group(table_chain.length));
-    table_chain.push({'data_lines': data_lines, 'root_node': table_group});
+    table_chain.push({'records': records, 'root_node': table_group});
     document.getElementById('table_chain_holder').appendChild(table_group);
 }
 
 
-function strip_cr(line) {
-    if (line.charAt(line.length - 1) === '\r') {
-        return line.substring(0, line.length - 1);
-    }
-    return line;
-}
-
-
 function do_load_table(file_text, delim, policy) {
-    global_delim = delim;
-    global_policy = policy;
     clean_table_chain(0);
     var lines = file_text.split('\n');
     var records = [];
-    let loaded_lines = [];
     var warning_line = null;
     for (var r = 0; r < lines.length; ++r) {
         let line = lines[r];
         line = strip_cr(line);
         if (r + 1 == lines.length && line.length == 0)
             break;
-        loaded_lines.push(line);
         var report = smart_split(line, delim, policy);
         var fields = report[0];
         var warning = report[1];
@@ -351,7 +201,7 @@ function do_load_table(file_text, delim, policy) {
     if (warning_line != null) {
         show_warnings('Input file has quoting issues', ['Double quotes usage is not consistent at some lines. E.g. at line ' + warning_line]);
     }
-    make_next_chained_table(records, loaded_lines);
+    make_next_chained_table(records);
 }
 
 
@@ -369,98 +219,26 @@ function load_default_table(callback_func) {
 }
 
 
-function load_worker_template(callback_func) {
-    // Explanation of version hack: https://stackoverflow.com/questions/19695843/problems-with-cached-result-when-sending-a-xmlhttprequest
-    var local_url = 'template.js.raw?version=12';
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-            template_js_text = xhr.responseText;
-            callback_func();
-        }
-    }
-    xhr.open('GET', local_url, true);
-    xhr.send(null);
-}
-
-
-function load_module_from_string(module_name, node_module_string) {
-    var module = {'exports': {}};
-    eval('(function(){' + node_module_string + '})()');
-    console.log('sussess eval');
-    eval(`${module_name} = module.exports;`);
-}
-
-
-function load_module(module_name, url, callback_func) {
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function () {
-        if (request.readyState !== 4)
-            return;
-        if (request.status !== 200)
-            return;
-        load_module_from_string(module_name, request.responseText);
-        callback_func();
-    };
-    request.open('GET', url);
-    request.send();
-}
-
-
-function handle_rbql_worker_success(warnings) {
-    console.log('warnings: ' + JSON.stringify(warnings));
-    if (warnings) {
-        let hr_warnings = rbql.make_warnings_human_readable(warnings);
-        show_warnings('RBQL Query has finished with Warnings', hr_warnings);
-    }
-    var records = [];
-    for (var i = 0; i < last_output_lines.length; i++) {
-        records.push(smart_split(last_output_lines[i], global_delim, global_policy)[0]);
-    }
-    make_next_chained_table(records, last_output_lines);
-}
-
-
-function handle_rbql_worker_error(error_msg) {
-    show_error('RBQL Backend', error_msg);
-}
-
-
-function get_error_message(error) {
-    if (error && error.message)
-        return error.message;
-    return String(error);
-}
-
-
 function start_rbql(src_chain_index) {
     console.log('starting rbql for chain index: ' + src_chain_index);
     clean_table_chain(src_chain_index + 1);
-    var rbql_text = document.getElementById(`query_input_${src_chain_index}`).value;
-    if (!rbql_text)
+    var user_query = document.getElementById(`query_input_${src_chain_index}`).value;
+    if (!user_query)
         return;
-    last_output_lines = [];
-    last_web_writer = new WebWriter();
-    last_web_reader = new WebReader();
-    let worker_text = null;
-    try {
-        worker_text = rbql.parse_to_js_almost_web('fake_src_path', 'fake_dst_path', [rbql_text], template_js_text, global_delim, global_policy, global_delim, global_policy, 'binary');
-        load_module_from_string('rbql_worker', worker_text);
-    } catch (e) {
-        show_error('RBQL parsing', get_error_message(e));
-        return;
+    let output_table = [];
+    let input_table = table_chain[src_chain_index]['records'];
+    let error_handler = function(error_type, error_msg) {
+        show_error(error_type, error_msg);
     }
-    rbql_worker.run_on_node(handle_rbql_worker_success, handle_rbql_worker_error);
-    let input_lines = table_chain[src_chain_index]['data_lines'];
-    for (let i = 0; i < input_lines.length; i++) {
-        let line = input_lines[i];
-        if (last_web_reader.closed) {
-            console.log(`last web reader was closed at line ${i}`);
-            break;
+    let success_handler = function(warnings) {
+        console.log('warnings: ' + JSON.stringify(warnings));
+        if (warnings) {
+            let hr_warnings = rbql.make_warnings_human_readable(warnings);
+            show_warnings('RBQL Query has finished with Warnings', hr_warnings);
         }
-        last_web_reader.feed_line(line);
+        make_next_chained_table(output_table);
     }
-    last_web_reader.close();
+    rbql.table_run(user_query, input_table, output_table, success_handler, error_handler);
 }
 
 
@@ -544,11 +322,7 @@ function toggle_expandable_block(button_id, block_id) {
 }
 
 
-
 function after_load() {
-    if (rbql === null || rbql_utils === null || template_js_text === null || !table_chain.length)
-        return;
-
     document.getElementById("ack_error").addEventListener("click", hide_error_msg);
     document.getElementById("open_custom_table_dialog").addEventListener("click", open_custom_table_dialog);
     document.getElementById("tableSubmit").addEventListener("click", process_submit);
@@ -559,11 +333,9 @@ function after_load() {
 
 
 function main() {
-    load_module('rbql_utils', 'rbql_utils.js', after_load);
-    load_module('rbql', 'rbql.js', after_load);
-    load_worker_template(after_load);
     load_default_table(after_load);
 }
+
 
 document.addEventListener("DOMContentLoaded", function(event) {
     main();
