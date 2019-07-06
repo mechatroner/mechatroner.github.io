@@ -232,9 +232,8 @@ function start_rbql(src_chain_index) {
     }
     let success_handler = function(warnings) {
         console.log('warnings: ' + JSON.stringify(warnings));
-        if (warnings) {
-            let hr_warnings = rbql.make_warnings_human_readable(warnings);
-            show_warnings('RBQL Query has finished with Warnings', hr_warnings);
+        if (warnings.length) {
+            show_warnings('RBQL Query has finished with Warnings', warnings);
         }
         make_next_chained_table(output_table);
     }
