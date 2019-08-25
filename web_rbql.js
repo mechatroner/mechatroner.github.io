@@ -5,13 +5,10 @@ let rbql = null;
 ( function() {
 let module = {'exports': {}};
 rbql = module.exports;
-const external_js_template_text = `try {
-__RBQLMP__user_init_code
-} catch (e) {
-    throw new Error('Exception while executing user-provided init code: ' + e);
-}
+const external_js_template_text = `__RBQLMP__user_init_code
 
 
+class RbqlParsingError extends Error {}
 class RbqlRuntimeError extends Error {}
 
 
@@ -22,13 +19,12 @@ function InternalBadFieldError(idx) {
 
 
 
-var unfold_list = null;
+var unnest_list = null;
 
 var module_was_used_failsafe = false;
 
 // Aggregators:
 var aggregation_stage = 0;
-var aggr_init_counter = 0;
 var functional_aggregators = [];
 
 var writer = null;
@@ -45,10 +41,11 @@ var external_input_iterator = null;
 var external_writer = null;
 var external_join_map_impl = null;
 
-var process_function = null;
+var polymorphic_process = null;
 var join_map = null;
 var node_debug_mode_flag = false;
 
+const wrong_aggregation_usage_error = 'Usage of RBQL aggregation functions inside JavaScript expressions is not allowed, see the docs';
 
 function finish_processing_error(error_type, error_msg) {
     if (finished_with_error)
@@ -121,35 +118,48 @@ function safe_set(record, idx, value) {
 }
 
 
-function Marker(marker_id, value) {
+function RBQLAggregationToken(marker_id, value) {
     this.marker_id = marker_id;
     this.value = value;
     this.toString = function() {
-        throw new RbqlRuntimeError('Unsupported aggregate expression');
+        throw new RbqlParsingError(wrong_aggregation_usage_error);
     }
 }
 
 
-function UnfoldMarker() {}
+function UnnestMarker() {}
 
 
-function UNFOLD(vals) {
-    if (unfold_list !== null) {
-        // Technically we can support multiple UNFOLD's but the implementation/algorithm is more complex and just doesn't worth it
-        throw new RbqlRuntimeError('Only one UNFOLD is allowed per query');
+function UNNEST(vals) {
+    if (unnest_list !== null) {
+        // Technically we can support multiple UNNEST's but the implementation/algorithm is more complex and just doesn't worth it
+        throw new RbqlParsingError('Only one UNNEST is allowed per query');
     }
-    unfold_list = vals;
-    return new UnfoldMarker();
+    unnest_list = vals;
+    return new UnnestMarker();
 }
+const unnest = UNNEST;
+const Unnest = UNNEST;
+const UNFOLD = UNNEST; // "UNFOLD" is deprecated, just for backward compatibility
 
+
+
+
+function parse_number(val) {
+    // We can do a more pedantic number test like \`/^ *-{0,1}[0-9]+\\.{0,1}[0-9]* *$/.test(val)\`, but  user will probably use just Number(val) or parseInt/parseFloat
+    let result = Number(val);
+    if (isNaN(result)) {
+        throw new RbqlRuntimeError(\`Unable to convert value "\${val}" to number. MIN, MAX, SUM, AVG, MEDIAN and VARIANCE aggregate functions convert their string arguments to numeric values\`);
+    }
+    return result;
+}
 
 
 function MinAggregator() {
     this.stats = new Map();
 
     this.increment = function(key, val) {
-        // JS version doesn't need "NumHandler" hack like in Python impl because it has only one "number" type, no ints/floats
-        val = parseFloat(val);
+        val = parse_number(val);
         var cur_aggr = this.stats.get(key);
         if (cur_aggr === undefined) {
             this.stats.set(key, val);
@@ -169,7 +179,7 @@ function MaxAggregator() {
     this.stats = new Map();
 
     this.increment = function(key, val) {
-        val = parseFloat(val);
+        val = parse_number(val);
         var cur_aggr = this.stats.get(key);
         if (cur_aggr === undefined) {
             this.stats.set(key, val);
@@ -184,29 +194,11 @@ function MaxAggregator() {
 }
 
 
-function CountAggregator() {
-    this.stats = new Map();
-
-    this.increment = function(key, val) {
-        var cur_aggr = this.stats.get(key);
-        if (cur_aggr === undefined) {
-            this.stats.set(key, 1);
-        } else {
-            this.stats.set(key, cur_aggr + 1);
-        }
-    }
-
-    this.get_final = function(key) {
-        return this.stats.get(key);
-    }
-}
-
-
 function SumAggregator() {
     this.stats = new Map();
 
     this.increment = function(key, val) {
-        val = parseFloat(val);
+        val = parse_number(val);
         var cur_aggr = this.stats.get(key);
         if (cur_aggr === undefined) {
             this.stats.set(key, val);
@@ -225,7 +217,7 @@ function AvgAggregator() {
     this.stats = new Map();
 
     this.increment = function(key, val) {
-        val = parseFloat(val);
+        val = parse_number(val);
         var cur_aggr = this.stats.get(key);
         if (cur_aggr === undefined) {
             this.stats.set(key, [val, 1]);
@@ -250,7 +242,7 @@ function VarianceAggregator() {
     this.stats = new Map();
 
     this.increment = function(key, val) {
-        val = parseFloat(val);
+        val = parse_number(val);
         var cur_aggr = this.stats.get(key);
         if (cur_aggr === undefined) {
             this.stats.set(key, [val, val * val, 1]);
@@ -278,7 +270,7 @@ function MedianAggregator() {
     this.stats = new Map();
 
     this.increment = function(key, val) {
-        val = parseFloat(val);
+        val = parse_number(val);
         var cur_aggr = this.stats.get(key);
         if (cur_aggr === undefined) {
             this.stats.set(key, [val]);
@@ -300,7 +292,25 @@ function MedianAggregator() {
 }
 
 
-function FoldAggregator(post_proc) {
+function CountAggregator() {
+    this.stats = new Map();
+
+    this.increment = function(key, val) {
+        var cur_aggr = this.stats.get(key);
+        if (cur_aggr === undefined) {
+            this.stats.set(key, 1);
+        } else {
+            this.stats.set(key, cur_aggr + 1);
+        }
+    }
+
+    this.get_final = function(key) {
+        return this.stats.get(key);
+    }
+}
+
+
+function ArrayAggAggregator(post_proc) {
     this.post_proc = post_proc;
     this.stats = new Map();
 
@@ -320,34 +330,33 @@ function FoldAggregator(post_proc) {
 }
 
 
-function SubkeyChecker() {
-    this.subkeys = new Map();
+function ConstGroupVerifier(output_index) {
+    this.output_index = output_index;
+    this.const_values = new Map();
 
-    this.increment = function(key, subkey) {
-        var old_subkey = this.subkeys.get(key);
-        if (old_subkey === undefined) {
-            this.subkeys.set(key, subkey);
-        } else if (old_subkey != subkey) {
-            throw 'Unable to group by "' + key + '", different values in output: "' + old_subkey + '" and "' + subkey + '"';
+    this.increment = function(key, value) {
+        var old_value = this.const_values.get(key);
+        if (old_value === undefined) {
+            this.const_values.set(key, value);
+        } else if (old_value != value) {
+            throw new RbqlRuntimeError(\`Invalid aggregate expression: non-constant values in output column \${this.output_index + 1}. E.g. "\${old_value}" and "\${value}"\`);
         }
     }
 
     this.get_final = function(key) {
-        return this.subkeys.get(key);
+        return this.const_values.get(key);
     }
 }
 
 
 function init_aggregator(generator_name, val, post_proc=null) {
     aggregation_stage = 1;
-    assert(aggr_init_counter == functional_aggregators.length, 'Unable to process aggregation expression');
+    var res = new RBQLAggregationToken(functional_aggregators.length, val);
     if (post_proc === null) {
         functional_aggregators.push(new generator_name());
     } else {
         functional_aggregators.push(new generator_name(post_proc));
     }
-    var res = new Marker(aggr_init_counter, val);
-    aggr_init_counter += 1;
     return res;
 }
 
@@ -355,35 +364,51 @@ function init_aggregator(generator_name, val, post_proc=null) {
 function MIN(val) {
     return aggregation_stage < 2 ? init_aggregator(MinAggregator, val) : val;
 }
+const min = MIN;
+const Min = MIN;
 
 
 function MAX(val) {
     return aggregation_stage < 2 ? init_aggregator(MaxAggregator, val) : val;
 }
+const max = MAX;
+const Max = MAX;
 
 function COUNT(val) {
     return aggregation_stage < 2 ? init_aggregator(CountAggregator, 1) : 1;
 }
+const count = COUNT;
+const Count = COUNT;
 
 function SUM(val) {
     return aggregation_stage < 2 ? init_aggregator(SumAggregator, val) : val;
 }
+const sum = SUM;
+const Sum = SUM;
 
 function AVG(val) {
     return aggregation_stage < 2 ? init_aggregator(AvgAggregator, val) : val;
 }
+const avg = AVG;
+const Avg = AVG;
 
 function VARIANCE(val) {
     return aggregation_stage < 2 ? init_aggregator(VarianceAggregator, val) : val;
 }
+const variance = VARIANCE;
+const Variance = VARIANCE;
 
 function MEDIAN(val) {
     return aggregation_stage < 2 ? init_aggregator(MedianAggregator, val) : val;
 }
+const median = MEDIAN;
+const Median = MEDIAN;
 
-function FOLD(val, post_proc = v => v.join('|')) {
-    return aggregation_stage < 2 ? init_aggregator(FoldAggregator, val, post_proc) : val;
+function ARRAY_AGG(val, post_proc = v => v.join('|')) {
+    return aggregation_stage < 2 ? init_aggregator(ArrayAggAggregator, val, post_proc) : val;
 }
+const array_agg = ARRAY_AGG;
+const FOLD = ARRAY_AGG; // "FOLD" is deprecated, just for backward compatibility
 
 
 function add_to_set(dst_set, value) {
@@ -591,18 +616,23 @@ function select_aggregated(key, transparent_values) {
     }
     if (aggregation_stage === 1) {
         if (!(writer instanceof TopWriter)) {
-            throw new RbqlRuntimeError('Unable to use "ORDER BY" or "DISTINCT" keywords in aggregate query');
+            throw new RbqlParsingError('Unable to use "ORDER BY" or "DISTINCT" keywords in aggregate query');
         }
         writer = new AggregateWriter(writer);
+        let num_aggregators_found = 0;
         for (var i = 0; i < transparent_values.length; i++) {
             var trans_value = transparent_values[i];
-            if (trans_value instanceof Marker) {
+            if (trans_value instanceof RBQLAggregationToken) {
                 writer.aggregators.push(functional_aggregators[trans_value.marker_id]);
                 writer.aggregators[writer.aggregators.length - 1].increment(key, trans_value.value);
+                num_aggregators_found += 1;
             } else {
-                writer.aggregators.push(new SubkeyChecker());
+                writer.aggregators.push(new ConstGroupVerifier(writer.aggregators.length));
                 writer.aggregators[writer.aggregators.length - 1].increment(key, trans_value);
             }
+        }
+        if (num_aggregators_found != functional_aggregators.length) {
+            throw new RbqlParsingError(wrong_aggregation_usage_error);
         }
         aggregation_stage = 2;
     } else {
@@ -615,11 +645,11 @@ function select_aggregated(key, transparent_values) {
 }
 
 
-function select_unfolded(sort_key, folded_fields) {
+function select_unnested(sort_key, folded_fields) {
     let out_fields = folded_fields.slice();
-    let unfold_pos = folded_fields.findIndex(val => val instanceof UnfoldMarker);
-    for (var i = 0; i < unfold_list.length; i++) {
-        out_fields[unfold_pos] = unfold_list[i];
+    let unnest_pos = folded_fields.findIndex(val => val instanceof UnnestMarker);
+    for (var i = 0; i < unnest_list.length; i++) {
+        out_fields[unnest_pos] = unnest_list[i];
         if (!select_simple(sort_key, out_fields.slice()))
             return false;
     }
@@ -629,7 +659,7 @@ function select_unfolded(sort_key, folded_fields) {
 
 function process_select(NF, afields, rhs_records) {
     for (var i = 0; i < rhs_records.length; i++) {
-        unfold_list = null;
+        unnest_list = null;
         var bfields = rhs_records[i];
         var star_fields = afields;
         if (bfields != null)
@@ -644,8 +674,8 @@ function process_select(NF, afields, rhs_records) {
             select_aggregated(key, out_fields);
         } else {
             var sort_key = [__RBQLMP__sort_key_expression];
-            if (unfold_list !== null) {
-                if (!select_unfolded(sort_key, out_fields))
+            if (unnest_list !== null) {
+                if (!select_unnested(sort_key, out_fields))
                     return false;
             } else {
                 if (!select_simple(sort_key, out_fields))
@@ -668,12 +698,14 @@ function process_record(record) {
             finish_processing_error('query execution', 'No "a' + (e.idx + 1) + '" column at record: ' + NR);
         } else if (e instanceof RbqlRuntimeError) {
             finish_processing_error('query execution', e.message);
+        } else if (e instanceof RbqlParsingError) {
+            finish_processing_error('query parsing', e.message);
         } else {
             if (node_debug_mode_flag) {
                 console.log('Unexpected exception, dumping stack trace:');
                 console.log(e.stack);
             }
-            finish_processing_error('unexpected', \`At record: \${NR}, Details: \${String(e)}\`);
+            finish_processing_error('query execution', \`At record: \${NR}, Details: \${String(e)}\`);
         }
     }
 }
@@ -682,7 +714,7 @@ function process_record(record) {
 function do_process_record(afields) {
     let rhs_records = join_map.get_rhs(__RBQLMP__lhs_join_var);
     let NF = afields.length;
-    if (!process_function(NF, afields, rhs_records)) {
+    if (!polymorphic_process(NF, afields, rhs_records)) {
         external_input_iterator.finish();
         return;
     }
@@ -690,7 +722,7 @@ function do_process_record(afields) {
 
 
 function do_rb_transform(input_iterator, output_writer) {
-    process_function = __RBQLMP__is_select_query ? process_select : process_update;
+    polymorphic_process = __RBQLMP__is_select_query ? process_select : process_update;
     var sql_join_type = {'VOID': FakeJoiner, 'JOIN': InnerJoiner, 'INNER JOIN': InnerJoiner, 'LEFT JOIN': LeftJoiner, 'STRICT LEFT JOIN': StrictLeftJoiner}['__RBQLMP__join_operation'];
 
     join_map = new sql_join_type(external_join_map_impl);
@@ -737,6 +769,8 @@ function rb_transform(input_iterator, join_map_impl, output_writer, external_suc
     } catch (e) {
         if (e instanceof RbqlRuntimeError) {
             finish_processing_error('query execution', e.message);
+        } else if (e instanceof RbqlParsingError) {
+            finish_processing_error('query parsing', e.message);
         } else {
             if (node_debug_mode_flag) {
                 console.log('Unexpected exception, dumping stack trace:');
@@ -765,7 +799,7 @@ module.exports.rb_transform = rb_transform;
 // TODO replace prototypes with classes: this improves readability
 
 
-const version = '0.5.0';
+const version = '0.9.0';
 
 const GROUP_BY = 'GROUP BY';
 const UPDATE = 'UPDATE';
@@ -784,6 +818,7 @@ class RbqlParsingError extends Error {}
 class RbqlIOHandlingError extends Error {}
 class AssertionError extends Error {}
 
+var debug_mode = false;
 
 function assert(condition, message=null) {
     if (!condition) {
@@ -878,7 +913,7 @@ function generate_init_statements(column_vars, indent) {
 
 
 function replace_star_count(aggregate_expression) {
-    var rgx = /(^|,) *COUNT\( *\* *\) *(?:$|(?=,))/g;
+    var rgx = /(^|,) *COUNT\( *\* *\) *(?:$|(?=,))/ig;
     var result = aggregate_expression.replace(rgx, '$1 COUNT(1)');
     return str_strip(result);
 }
@@ -948,7 +983,7 @@ function separate_string_literals_js(rbql_expression) {
 
 
 function combine_string_literals(backend_expression, string_literals) {
-    for (var i = 0; i < string_literals.length; i++) {
+    for (var i = string_literals.length - 1; i >= 0; i--) {
         backend_expression = replace_all(backend_expression, `###RBQL_STRING_LITERAL###${i}`, string_literals[i]);
     }
     return backend_expression;
@@ -1274,24 +1309,24 @@ function load_module_from_file(js_code) {
 }
 
 
-function generic_run(user_query, input_iterator, output_writer, success_handler, error_handler, join_tables_registry=null, user_init_code='', node_debug_mode=false) {
+function generic_run(user_query, input_iterator, output_writer, success_handler, error_handler, join_tables_registry=null, user_init_code='') {
     try {
         user_init_code = indent_user_init_code(user_init_code);
         let [js_code, join_map] = parse_to_js(user_query, external_js_template_text, join_tables_registry, user_init_code);
         let rbql_worker = null;
-        if (node_debug_mode) {
+        if (debug_mode) {
             rbql_worker = load_module_from_file(js_code);
         } else {
             let module = {'exports': {}};
             eval('(function(){' + js_code + '})()');
             rbql_worker = module.exports;
         }
-        rbql_worker.rb_transform(input_iterator, join_map, output_writer, success_handler, error_handler, node_debug_mode);
+        rbql_worker.rb_transform(input_iterator, join_map, output_writer, success_handler, error_handler, debug_mode);
     } catch (e) {
         if (e instanceof RbqlParsingError) {
             error_handler('query parsing', e.message);
         } else {
-            if (node_debug_mode) {
+            if (debug_mode) {
                 console.log('Unexpected exception, dumping stack trace:');
                 console.log(e.stack);
             }
@@ -1407,13 +1442,17 @@ function SingleTableRegistry(table, table_id='B') {
 }
 
 
-function table_run(user_query, input_table, output_table, success_handler, error_handler, join_table=null, user_init_code='', node_debug_mode=false) {
+function table_run(user_query, input_table, output_table, success_handler, error_handler, join_table=null, user_init_code='') {
     let input_iterator = new TableIterator(input_table);
     let output_writer = new TableWriter(output_table);
     let join_tables_registry = join_table === null ? null : new SingleTableRegistry(join_table);
-    generic_run(user_query, input_iterator, output_writer, success_handler, error_handler, join_tables_registry, user_init_code, node_debug_mode);
+    generic_run(user_query, input_iterator, output_writer, success_handler, error_handler, join_tables_registry, user_init_code);
 }
 
+
+function set_debug_mode() {
+    debug_mode = true;
+}
 
 
 module.exports.version = version;
@@ -1433,6 +1472,7 @@ module.exports.parse_join_expression = parse_join_expression;
 module.exports.translate_update_expression = translate_update_expression;
 module.exports.translate_select_expression_js = translate_select_expression_js;
 
+module.exports.set_debug_mode = set_debug_mode;
 })()
 
 // DO NOT EDIT!
