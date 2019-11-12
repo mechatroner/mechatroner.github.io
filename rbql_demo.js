@@ -192,7 +192,12 @@ function load_default_table(callback_func) {
 
 function start_rbql(src_chain_index) {
     console.log('starting rbql for chain index: ' + src_chain_index);
-    ga('send', 'event', 'Button', 'click', 'rbql_chain_run', src_chain_index);
+    if ("ga" in window) {
+        // See: https://stackoverflow.com/a/40761709/2898283
+        let tracker = ga.getAll()[0];
+        if (tracker)
+            tracker.send('event', 'Button', 'click', 'rbql_chain_run', src_chain_index);
+    }
     clean_table_chain(src_chain_index + 1);
     var user_query = document.getElementById(`query_input_${src_chain_index}`).value;
     if (!user_query)
@@ -262,7 +267,11 @@ function close_custom_table_dialog() {
 
 
 function process_submit() {
-    ga('send', 'event', 'Button', 'click', 'submit');
+    if ("ga" in window) {
+        let tracker = ga.getAll()[0];
+        if (tracker)
+            tracker.send('event', 'Button', 'click', 'submit');
+    }
     var inputElem = document.getElementById("doLoadTable");
     var selected_file = inputElem.files[0];
     let drop_down_list = document.getElementById("separator_ddl");
