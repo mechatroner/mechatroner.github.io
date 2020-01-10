@@ -6,6 +6,11 @@ let field_rgx_external_whitespaces = new RegExp('^ *' + field_regular_expression
 // TODO consider making this file (and rbql.js) both node and browser compatible: https://caolan.org/posts/writing_for_node_and_the_browser.html
 
 
+function split_lines(text) {
+    return text.split(/\r\n|\r|\n/);
+}
+
+
 function extract_next_field(src, dlm, preserve_quotes_and_whitespaces, allow_external_whitespaces, cidx, result) {
     var warning = false;
     let src_cur = src.substring(cidx);
@@ -52,10 +57,18 @@ function split_quoted_str(src, dlm, preserve_quotes_and_whitespaces=false) {
 
 
 function quote_field(src, delim) {
-    if (src.indexOf('"') != -1 || src.indexOf(delim) != -1) {
+    if (src.indexOf(delim) != -1 || src.indexOf('"') != -1) {
         var escaped = src.replace(/"/g, '""');
-        escaped = '"' + escaped + '"';
-        return escaped;
+        return `"${escaped}"`;
+    }
+    return src;
+}
+
+
+function rfc_quote_field(src, delim) {
+    if (src.indexOf(delim) != -1 || src.indexOf('"') != -1 || src.indexOf('\n') != -1 || src.indexOf('\r') != -1) {
+        var escaped = src.replace(/"/g, '""');
+        return `"${escaped}"`;
     }
     return src;
 }
@@ -107,5 +120,8 @@ function smart_split(src, dlm, policy, preserve_quotes_and_whitespaces) {
 module.exports.split_quoted_str = split_quoted_str;
 module.exports.split_whitespace_separated_str = split_whitespace_separated_str;
 module.exports.smart_split = smart_split;
+module.exports.quote_field = quote_field;
+module.exports.rfc_quote_field = rfc_quote_field;
 module.exports.unquote_field = unquote_field;
 module.exports.unquote_fields = unquote_fields;
+module.exports.split_lines = split_lines;
