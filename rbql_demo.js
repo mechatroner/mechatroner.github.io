@@ -190,31 +190,51 @@ function load_default_table(callback_func) {
 }
 
 
+function exception_to_error_info(e) {
+    let exceptions_type_map = {
+        'RbqlRuntimeError': 'query execution',
+        'RbqlParsingError': 'query parsing',
+        'RbqlIOHandlingError': 'IO handling'
+    };
+    let error_type = 'unexpected';
+    if (e.constructor && e.constructor.name && exceptions_type_map.hasOwnProperty(e.constructor.name)) {
+        error_type = exceptions_type_map[e.constructor.name];
+    }
+    let error_msg = e.hasOwnProperty('message') ? e.message : String(e);
+    return [error_type, error_msg];
+}
+
+
 function start_rbql(src_chain_index) {
     console.log('starting rbql for chain index: ' + src_chain_index);
     if ("ga" in window) {
         // See: https://stackoverflow.com/a/40761709/2898283
         let tracker = ga.getAll()[0];
         if (tracker)
-            tracker.send('event', 'Button', 'click', 'rbql_chain_run', src_chain_index);
+            tracker.send('event', 'Button', 'click', 'rbql_chain_run' + src_chain_index);
     }
     clean_table_chain(src_chain_index + 1);
     var user_query = document.getElementById(`query_input_${src_chain_index}`).value;
     if (!user_query)
         return;
     let output_table = [];
+    let warnings = [];
     let input_table = table_chain[src_chain_index]['records'];
-    let error_handler = function(error_type, error_msg) {
+
+    let error_handler = function(exception) {
+        let [error_type, error_msg] = exception_to_error_info(exception);
         show_error(error_type, error_msg);
     }
-    let success_handler = function(warnings) {
+
+    let success_handler = function() {
         console.log('warnings: ' + JSON.stringify(warnings));
         if (warnings.length) {
             show_warnings('RBQL Query has finished with Warnings', warnings);
         }
         make_next_chained_table(output_table);
     }
-    rbql.table_run(user_query, input_table, output_table, success_handler, error_handler);
+
+    rbql.query_table(user_query, input_table, output_table, warnings).then(success_handler).catch(error_handler);
 }
 
 
