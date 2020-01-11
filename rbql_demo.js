@@ -211,7 +211,7 @@ function start_rbql(src_chain_index) {
         // See: https://stackoverflow.com/a/40761709/2898283
         let tracker = ga.getAll()[0];
         if (tracker)
-            tracker.send('event', 'Button', 'click', 'rbql_chain_run' + src_chain_index);
+            tracker.send('event', 'Button', 'click', 'rbql_chain_run_' + src_chain_index);
     }
     clean_table_chain(src_chain_index + 1);
     var user_query = document.getElementById(`query_input_${src_chain_index}`).value;
@@ -233,8 +233,9 @@ function start_rbql(src_chain_index) {
         }
         make_next_chained_table(output_table);
     }
-
-    rbql.query_table(user_query, input_table, output_table, warnings).then(success_handler).catch(error_handler);
+    let input_column_names = input_table.length ? input_table[0] : null;
+    let user_init_code = document.getElementById('udf_text_area').textContent;
+    rbql.query_table(user_query, input_table, output_table, warnings, null, input_column_names, null, true, user_init_code).then(success_handler).catch(error_handler);
 }
 
 
@@ -273,6 +274,13 @@ function save_result_table(chain_index) {
     let file_content = data_lines.join('\r\n')
     let blob = new Blob([file_content], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "rbql_output.txt");
+}
+
+
+function open_udf_dialog() {
+    document.getElementById('udf_holder').style.display = 'block';
+    document.getElementById('udf_text_area').textContent = '// Define some JS functions here and you will be able to use them in your query. Example: \nfunction foobar(value) {\n    return "foo" + value + "bar";\n}'
+    document.getElementById('udf_text_area').focus();
 }
 
 
@@ -326,6 +334,7 @@ function toggle_expandable_block(button_id, block_id) {
 function after_load() {
     document.getElementById("ack_error").addEventListener("click", hide_error_msg);
     document.getElementById("open_custom_table_dialog").addEventListener("click", open_custom_table_dialog);
+    document.getElementById("open_udf_dialog").addEventListener("click", open_udf_dialog);
     document.getElementById("tableSubmit").addEventListener("click", process_submit);
     document.getElementById("cancelSubmit").addEventListener("click", close_custom_table_dialog);
     document.getElementById("show_examples_button").addEventListener("click", () => { toggle_expandable_block('show_examples_button', 'examples_block'); });
