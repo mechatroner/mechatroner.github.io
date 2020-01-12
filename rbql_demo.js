@@ -1,5 +1,8 @@
+const max_display_records = 1000;
+
 var table_chain = [];
 
+// FIXME fix save_result_table method
 
 function load_module_from_string(module_name, node_module_string) {
     var module = {'exports': {}};
@@ -35,7 +38,6 @@ function strip_cr(line) {
 }
 
 
-
 function append_data_cell(row, cell_text, is_first) {
     let cell = document.createElement('td');
     cell.style.borderRight = '1px solid black';
@@ -59,7 +61,7 @@ function append_header_cell(row, cell_text) {
 function clean_table_chain(from_index) {
     while (table_chain.length > from_index) {
         let last_table = table_chain.pop();
-        let root_node = last_table['root_node'];
+        let root_node = last_table.root_node;
         root_node.remove();
     }
 }
@@ -70,13 +72,63 @@ function create_save_click_handler(chain_index) {
 }
 
 
+function remove_children(root_node) {
+    while (root_node.firstChild) {
+        root_node.removeChild(root_node.firstChild);
+    }
+}
+
+
+function populate_table(table, records, header_record) {
+    let header_section = document.createElement('thead');
+    let row = document.createElement('tr');
+    append_header_cell(row, 'NR');
+    for (let i = 0; i < records[0].length; i++) {
+        let column_name = `a${i + 1}`;
+        if (header_record && i < header_record.length) {
+            column_name += '\r\n' + header_record[i];
+        }
+        append_header_cell(row, column_name);
+    }
+    header_section.appendChild(row);
+    table.appendChild(header_section);
+    let data_section = document.createElement('tbody');
+    for (var nr = 0; nr < records.length && nr < max_display_records; nr++) {
+        let row = document.createElement('tr');
+        data_section.appendChild(row);
+        append_data_cell(row, nr + 1, true);
+        for (var nf = 0; nf < records[nr].length; nf++) {
+            append_data_cell(row, records[nr][nf], false);
+        }
+    }
+    table.appendChild(data_section);
+}
+
+
 function make_run_button_group(chain_index) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
     result.setAttribute('style', 'display: block');
     result.id = `query_group_${chain_index}`;
 
-    let input_elem = result.getElementsByTagName('input')[0];
+    let checkbox_elem = result.getElementsByTagName("input")[0];
+    checkbox_elem.addEventListener('click', function() {
+        let skip_header_row = checkbox_elem.checked;
+        let table_records = table_chain[chain_index]['records'];
+        let header_row = table_chain[chain_index].header;
+        if (skip_header_row && !header_row && table_records.length) {
+            table_chain[chain_index].header = table_records.splice(0, 1)[0];
+        }
+        if (!skip_header_row && header_row) {
+            table_records.splice(0, 0, header_row);
+            delete table_chain[chain_index].header;
+        }
+
+        let table = table_chain[chain_index].root_node.getElementsByTagName("table")[0];
+        remove_children(table);
+        populate_table(table, table_records, table_chain[chain_index].header);
+    });
+    let input_elem = result.getElementsByTagName('input')[1];
     input_elem.id = `query_input_${chain_index}`;
     input_elem.addEventListener("keyup", function(event) {
         event.preventDefault();
@@ -92,45 +144,31 @@ function make_run_button_group(chain_index) {
 }
 
 
-function make_next_chained_table(records) {
+function make_next_chained_table_group(records) {
     // http://jsfiddle.net/mmavko/2ysb0hmf/   - sticky trick example
     let table_group = document.createElement('div');
     if (records.length == 0) {
         let empty_table_msg = document.createElement('span');
         empty_table_msg.textContent = 'Result table is empty';
         table_group.appendChild(empty_table_msg);
-        table_chain.push({'records': [], 'root_node': table_group});
+        table_chain.push({records: [], root_node: table_group});
         document.getElementById('table_chain_holder').appendChild(table_group);
         return;
     }
     let table_window = document.createElement('div');
     table_window.setAttribute('class', 'table_window');
+
     let table = document.createElement('table');
+
+    populate_table(table, records, null);
+
     let warning_div = null;
-    const max_table_size = 1000;
-    if (records.length > max_table_size) {
+    if (records.length > max_display_records) {
         warning_div = document.createElement('div');
         warning_div.setAttribute('class', 'table_cut_warning');
-        warning_div.textContent = `Warning. Table is too big: showing only top ${max_table_size} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`;
+        warning_div.textContent = `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`;
     }
-    let header_section = document.createElement('thead');
-    let row = document.createElement('tr');
-    append_header_cell(row, 'NR');
-    for (let i = 0; i < records[0].length; i++) {
-        append_header_cell(row, `a${i + 1}`);
-    }
-    header_section.appendChild(row);
-    table.appendChild(header_section);
-    let data_section = document.createElement('tbody');
-    for (var nr = 0; nr < records.length && nr < max_table_size; nr++) {
-        let row = document.createElement('tr');
-        data_section.appendChild(row);
-        append_data_cell(row, nr + 1, true);
-        for (var nf = 0; nf < records[nr].length; nf++) {
-            append_data_cell(row, records[nr][nf], false);
-        }
-    }
-    table.appendChild(data_section);
+
     let save_button = null;
     if (table_chain.length) {
         save_button = document.createElement('button');
@@ -146,7 +184,7 @@ function make_next_chained_table(records) {
         table_group.appendChild(warning_div);
     table_group.appendChild(table_window);
     table_group.appendChild(make_run_button_group(table_chain.length));
-    table_chain.push({'records': records, 'root_node': table_group});
+    table_chain.push({records: records, root_node: table_group});
     document.getElementById('table_chain_holder').appendChild(table_group);
 }
 
@@ -172,7 +210,7 @@ function do_load_table(file_text, delim, policy) {
     if (warning_line != null) {
         show_warnings('Input file has quoting issues', ['Double quotes usage is not consistent at some lines. E.g. at line ' + warning_line]);
     }
-    make_next_chained_table(records);
+    make_next_chained_table_group(records);
 }
 
 
@@ -231,7 +269,7 @@ function start_rbql(src_chain_index) {
         if (warnings.length) {
             show_warnings('RBQL Query has finished with Warnings', warnings);
         }
-        make_next_chained_table(output_table);
+        make_next_chained_table_group(output_table);
     }
     let input_column_names = input_table.length ? input_table[0] : null;
     let user_init_code = document.getElementById('udf_text_area').textContent;
@@ -270,6 +308,7 @@ function hide_error_msg() {
 
 
 function save_result_table(chain_index) {
+    // FIXME this won't work!
     let data_lines = table_chain[chain_index]['data_lines'];
     let file_content = data_lines.join('\r\n')
     let blob = new Blob([file_content], {type: "text/plain;charset=utf-8"});
