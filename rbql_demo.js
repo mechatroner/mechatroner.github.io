@@ -200,6 +200,7 @@ function do_load_table(file_text, delim, policy) {
     var lines = file_text.split('\n');
     var records = [];
     var warning_line = null;
+    // TODO use standard trick with counting double quoted to support rfc
     for (var r = 0; r < lines.length; ++r) {
         let line = lines[r];
         line = strip_cr(line);
