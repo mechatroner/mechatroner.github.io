@@ -114,14 +114,14 @@ function make_run_button_group(chain_index) {
     let checkbox_elem = result.getElementsByTagName("input")[0];
     checkbox_elem.addEventListener('click', function() {
         let skip_header_row = checkbox_elem.checked;
-        let table_records = table_chain[chain_index]['records'];
+        let table_records = table_chain[chain_index].records;
         let header_row = table_chain[chain_index].header;
         if (skip_header_row && !header_row && table_records.length) {
             table_chain[chain_index].header = table_records.splice(0, 1)[0];
         }
         if (!skip_header_row && header_row) {
             table_records.splice(0, 0, header_row);
-            delete table_chain[chain_index].header;
+            table_chain[chain_index].header = null;
         }
 
         let table = table_chain[chain_index].root_node.getElementsByTagName("table")[0];
@@ -151,7 +151,7 @@ function make_next_chained_table_group(records) {
         let empty_table_msg = document.createElement('span');
         empty_table_msg.textContent = 'Result table is empty';
         table_group.appendChild(empty_table_msg);
-        table_chain.push({records: [], root_node: table_group});
+        table_chain.push({records: [], root_node: table_group, header: null});
         document.getElementById('table_chain_holder').appendChild(table_group);
         return;
     }
@@ -184,7 +184,7 @@ function make_next_chained_table_group(records) {
         table_group.appendChild(warning_div);
     table_group.appendChild(table_window);
     table_group.appendChild(make_run_button_group(table_chain.length));
-    table_chain.push({records: records, root_node: table_group});
+    table_chain.push({records: records, root_node: table_group, header: null});
     document.getElementById('table_chain_holder').appendChild(table_group);
 }
 
@@ -257,7 +257,10 @@ function start_rbql(src_chain_index) {
         return;
     let output_table = [];
     let warnings = [];
-    let input_table = table_chain[src_chain_index]['records'];
+    let input_table = table_chain[src_chain_index].records;
+    let input_column_names = table_chain[src_chain_index].header;
+    if (!input_column_names && input_table.length)
+        input_column_names = input_table[0];
 
     let error_handler = function(exception) {
         let [error_type, error_msg] = exception_to_error_info(exception);
@@ -271,7 +274,6 @@ function start_rbql(src_chain_index) {
         }
         make_next_chained_table_group(output_table);
     }
-    let input_column_names = input_table.length ? input_table[0] : null;
     let user_init_code = document.getElementById('udf_text_area').textContent;
     rbql.query_table(user_query, input_table, output_table, warnings, null, input_column_names, null, true, user_init_code).then(success_handler).catch(error_handler);
 }
