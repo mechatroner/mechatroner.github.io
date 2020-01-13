@@ -116,6 +116,9 @@ function make_run_button_group(chain_index) {
 
     let checkbox_elem = result.getElementsByTagName("input")[0];
     checkbox_elem.addEventListener('click', function() {
+        let tracker = ga.getAll()[0];
+        if (tracker)
+            tracker.send('event', 'Checkbox', 'click', 'skip_header_' + checkbox_elem.checked);
         let skip_header_row = checkbox_elem.checked;
         let table_records = table_chain[chain_index].records;
         let header_row = table_chain[chain_index].header;
