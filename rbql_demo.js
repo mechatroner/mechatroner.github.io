@@ -2,7 +2,10 @@ const max_display_records = 1000;
 
 var table_chain = [];
 
-// FIXME fix save_result_table method
+var last_delim = null;
+var last_policy = null;
+
+// FIXME support rfc-csv dialect
 
 function load_module_from_string(module_name, node_module_string) {
     var module = {'exports': {}};
@@ -219,7 +222,9 @@ function load_default_table(callback_func) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == XMLHttpRequest.DONE) {
-            do_load_table(xhr.responseText, '\t', 'simple');
+            last_delim = '\t';
+            last_policy = 'simple';
+            do_load_table(xhr.responseText, last_delim, last_policy);
             callback_func();
         }
     }
@@ -309,9 +314,23 @@ function hide_error_msg() {
 }
 
 
+function smart_join(fields, delim, policy) {
+    if (policy == 'simple')
+        return fields.join(delim);
+    if (policy == 'quoted')
+        return fields.map(v => csv_utils.quote_field(String(v), delim));
+    if (policy == 'quoted_rfc')
+        return fields.map(v => csv_utils.rfc_quote_field(String(v), delim));
+    throw new Error('Unknown policy: ' + policy);
+}
+
+
 function save_result_table(chain_index) {
-    // FIXME this won't work!
-    let data_lines = table_chain[chain_index]['data_lines'];
+    let table_records = table_chain[chain_index].records;
+    let header_row = table_chain[chain_index].header;
+    if (header_row)
+        table_records = [header_row].concat(table_records);
+    let data_lines = table_records.map(r => smart_join(r, last_delim, last_policy));
     let file_content = data_lines.join('\r\n')
     let blob = new Blob([file_content], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "rbql_output.txt");
@@ -349,11 +368,11 @@ function process_submit() {
     if (!selected_file || !dialect_map.hasOwnProperty(dialect_name)) {
         return;
     }
-    let [delim, policy] = dialect_map[dialect_name];
+    [last_delim, last_policy] = dialect_map[dialect_name];
     var reader = new FileReader();
     reader.onload = function(e) {
         let table_text = reader.result; 
-        do_load_table(table_text, delim, policy);
+        do_load_table(table_text, last_delim, last_policy);
         close_custom_table_dialog();
     }
     reader.readAsText(selected_file);
