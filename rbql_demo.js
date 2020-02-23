@@ -108,6 +108,20 @@ function populate_table(table, records, header_record) {
 }
 
 
+function send_tracking_info(element_type, event_type, tag) {
+    try {
+        if ("ga" in window) {
+            // See: https://stackoverflow.com/a/40761709/2898283
+            let tracker = ga.getAll()[0];
+            if (tracker)
+                tracker.send('event', element_type, event_type, tag);
+        }
+    } catch (e) {
+        console.error('Unable to send tracking info: ' + String(e));
+    }
+}
+
+
 function make_run_button_group(chain_index) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
@@ -116,9 +130,7 @@ function make_run_button_group(chain_index) {
 
     let checkbox_elem = result.getElementsByTagName("input")[0];
     checkbox_elem.addEventListener('click', function() {
-        let tracker = ga.getAll()[0];
-        if (tracker)
-            tracker.send('event', 'Checkbox', 'click', 'skip_header_' + checkbox_elem.checked);
+        send_tracking_info('Checkbox', 'click', 'skip_header_' + checkbox_elem.checked);
         let skip_header_row = checkbox_elem.checked;
         let table_records = table_chain[chain_index].records;
         let header_row = table_chain[chain_index].header;
@@ -254,12 +266,7 @@ function exception_to_error_info(e) {
 
 function start_rbql(src_chain_index) {
     console.log('starting rbql for chain index: ' + src_chain_index);
-    if ("ga" in window) {
-        // See: https://stackoverflow.com/a/40761709/2898283
-        let tracker = ga.getAll()[0];
-        if (tracker)
-            tracker.send('event', 'Button', 'click', 'rbql_chain_run_' + src_chain_index);
-    }
+    send_tracking_info('Button', 'click', 'rbql_chain_run_' + src_chain_index);
     clean_table_chain(src_chain_index + 1);
     var user_query = document.getElementById(`query_input_${src_chain_index}`).value;
     if (!user_query)
@@ -342,6 +349,7 @@ function save_result_table(chain_index) {
 
 
 function open_udf_dialog() {
+    send_tracking_info('Button', 'click', 'edit_udf');
     document.getElementById('udf_holder').style.display = 'block';
     document.getElementById('udf_text_area').textContent = '// Define some JS functions here and you will be able to use them in your query. Example: \nfunction foobar(value) {\n    return "foo" + value + "bar";\n}'
     document.getElementById('udf_text_area').focus();
@@ -359,11 +367,7 @@ function close_custom_table_dialog() {
 
 
 function process_submit() {
-    if ("ga" in window) {
-        let tracker = ga.getAll()[0];
-        if (tracker)
-            tracker.send('event', 'Button', 'click', 'submit');
-    }
+    send_tracking_info('Button', 'click', 'submit');
     var inputElem = document.getElementById("doLoadTable");
     var selected_file = inputElem.files[0];
     let drop_down_list = document.getElementById("separator_ddl");
