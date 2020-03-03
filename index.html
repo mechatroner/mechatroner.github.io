@@ -17,9 +17,9 @@
 <!-- explanation of version hack: https://stackoverflow.com/questions/32414/how-can-i-force-clients-to-refresh-javascript-files -->
 <script src="contrib/textarea-caret-position/index.js"></script>
 <script src="contrib/FileSaver/FileSaver.js"></script>
-<script src="rbql_suggest.js?version=22"></script>
-<script src="web_rbql.js?version=22"></script>
-<script src="rbql_demo.js?version=22"></script>
+<script src="rbql_suggest.js?version=24"></script>
+<script src="web_rbql.js?version=24"></script>
+<script src="rbql_demo.js?version=24"></script>
 
 <title>RBQL - Rainbow Query Language</title>
 <style>
@@ -332,6 +332,49 @@ input {
 }
 
 
+#query_suggest{ 
+    width: 200px;
+    z-index: 1000010; 
+    background-color: #FFFFFF; 
+    position: fixed; 
+    display: none;
+    color: black;
+    border-top: 1px solid;
+    border-left: 1px solid;
+    border-right: 1px solid;
+    max-height: 300px;
+    white-space: nowrap;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+.suggest_button {
+    margin: 0px;
+    width: 100%;
+    background-color: #FFFFFF;
+    height: 24px !important;
+    color: black;
+    font-family: Consolas, Monaco, monospace;
+    border-width: 0px;
+    outline: none;
+    display: block;
+    text-align: left;
+    padding-left: 2px;
+    white-space: nowrap;
+}
+
+
+.suggest_button_active {
+    background-color: #DDDDDD;
+}
+
+
+.suggest_button:hover {
+    background-color: #DDDDDD;
+}
+
+
 #rbql_error_message {
     width: 50%;
     top: 20%;
@@ -542,6 +585,10 @@ input {
     <div style="margin-bottom: 4px"><span>Input SQL-like RBQL query and press Enter. Use a1, a2, a3, ... and NR as column names. (You can also use a.Title, a.Country, etc...)</span></div>
     <input type="text" style="width:70%" placeholder="select ... where ... order by ... limit ... ">
     <button class="rbql_run_button">Run</button>
+</div>
+
+
+<div id="query_suggest">
 </div>
 
 

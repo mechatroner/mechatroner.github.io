@@ -122,7 +122,7 @@ function send_tracking_info(element_type, event_type, tag) {
 }
 
 
-function make_run_button_group(chain_index) {
+function make_run_button_group(chain_index, header) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
     result.setAttribute('style', 'display: block');
@@ -147,11 +147,19 @@ function make_run_button_group(chain_index) {
         populate_table(table, table_records, table_chain[chain_index].header);
     });
     let input_elem = result.getElementsByTagName('input')[1];
+    // TODO make suggest context a class/object which can be initialized for each table separately
     input_elem.id = `query_input_${chain_index}`;
+    rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header);
+
     input_elem.addEventListener("keyup", function(event) {
-        event.preventDefault();
-        if (event.keyCode == 13) {
-            start_rbql(chain_index);
+        rbql_suggest.handle_input_keyup(event);
+    });
+
+    input_elem.addEventListener("keydown", function(event) {
+        if (event.keyCode == 13 && rbql_suggest.active_suggest_idx === null) {
+            start_rbql();
+        } else {
+            rbql_suggest.handle_input_keydown(event);
         }
     });
 
@@ -201,7 +209,7 @@ function make_next_chained_table_group(records) {
     if (warning_div)
         table_group.appendChild(warning_div);
     table_group.appendChild(table_window);
-    table_group.appendChild(make_run_button_group(table_chain.length));
+    table_group.appendChild(make_run_button_group(table_chain.length, records[0]));
     table_chain.push({records: records, root_node: table_group, header: null});
     document.getElementById('table_chain_holder').appendChild(table_group);
 }
