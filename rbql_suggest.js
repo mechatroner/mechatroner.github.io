@@ -132,9 +132,7 @@ function show_suggest(suggest_div, query_before_var, relevant_suggest_list, quer
     highlight_active_suggest_entry(true);
     suggest_div.style.display = 'block';
     let calculated_height = suggest_div.offsetHeight;
-
-    let text_input_coordinates = rbql_input.getBoundingClientRect(); // FIXME use the same method in VSCode version
-
+    let text_input_coordinates = rbql_input.getBoundingClientRect();
     suggest_div.style.left = (text_input_coordinates.left + caret_left_shift) + 'px';
     suggest_div.style.top = (text_input_coordinates.top - calculated_height) + 'px';
 }
