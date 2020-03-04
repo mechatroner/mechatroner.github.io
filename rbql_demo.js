@@ -157,7 +157,7 @@ function make_run_button_group(chain_index, header) {
 
     input_elem.addEventListener("keydown", function(event) {
         if (event.keyCode == 13 && rbql_suggest.active_suggest_idx === null) {
-            start_rbql();
+            start_rbql(chain_index);
         } else {
             rbql_suggest.handle_input_keydown(event);
         }
