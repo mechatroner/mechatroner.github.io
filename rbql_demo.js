@@ -147,9 +147,10 @@ function make_run_button_group(chain_index, header) {
         populate_table(table, table_records, table_chain[chain_index].header);
     });
     let input_elem = result.getElementsByTagName('input')[1];
-    // TODO make suggest context a class/object which can be initialized for each table separately
     input_elem.id = `query_input_${chain_index}`;
-    rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header);
+    if (chain_index == 0) { // FIXME make suggest context a class/object which can be initialized for each table separately, to get rid of this hack
+        rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header);
+    }
 
     input_elem.addEventListener("keyup", function(event) {
         rbql_suggest.handle_input_keyup(event);
