@@ -258,21 +258,6 @@ function load_default_table(callback_func) {
 }
 
 
-function exception_to_error_info(e) {
-    let exceptions_type_map = {
-        'RbqlRuntimeError': 'query execution',
-        'RbqlParsingError': 'query parsing',
-        'RbqlIOHandlingError': 'IO handling'
-    };
-    let error_type = 'unexpected';
-    if (e.constructor && e.constructor.name && exceptions_type_map.hasOwnProperty(e.constructor.name)) {
-        error_type = exceptions_type_map[e.constructor.name];
-    }
-    let error_msg = e.hasOwnProperty('message') ? e.message : String(e);
-    return [error_type, error_msg];
-}
-
-
 function start_rbql(src_chain_index) {
     console.log('starting rbql for chain index: ' + src_chain_index);
     send_tracking_info('Button', 'click', 'rbql_chain_run_' + src_chain_index);
@@ -288,7 +273,7 @@ function start_rbql(src_chain_index) {
         input_column_names = input_table[0];
 
     let error_handler = function(exception) {
-        let [error_type, error_msg] = exception_to_error_info(exception);
+        let [error_type, error_msg] = rbql.exception_to_error_info(exception);
         show_error(error_type, error_msg);
     }
 
