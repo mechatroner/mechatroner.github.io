@@ -77,8 +77,8 @@ function remove_children(root_node) {
 
 
 function populate_table(table, records, header_record) {
-    let header_section = document.createElement('thead');
-    let row = document.createElement('tr');
+    let header_section = make_element('thead', table);
+    let row = make_element('tr', header_section);
     make_element('th', row, null, 'NR');
     for (let i = 0; i < records[0].length; i++) {
         let column_name = `a${i + 1}`;
@@ -87,18 +87,14 @@ function populate_table(table, records, header_record) {
         }
         make_element('th', row, null, column_name);
     }
-    header_section.appendChild(row);
-    table.appendChild(header_section);
-    let data_section = document.createElement('tbody');
+    let data_section = make_element('tbody', table);
     for (var nr = 0; nr < records.length && nr < max_display_records; nr++) {
-        let row = document.createElement('tr');
-        data_section.appendChild(row);
+        let row = make_element('tr', data_section);
         make_element('td', row, 'nr_cell', nr + 1);
         for (var nf = 0; nf < records[nr].length; nf++) {
             make_element('td', row, null, records[nr][nf]);
         }
     }
-    table.appendChild(data_section);
 }
 
 
@@ -167,30 +163,19 @@ function make_run_button_group(chain_index, header) {
 
 function make_next_chained_table_group(records) {
     // http://jsfiddle.net/mmavko/2ysb0hmf/   - sticky trick example
-    let table_group = document.createElement('div');
+    let table_group = make_element('div', document.getElementById('table_chain_holder'));
     if (records.length == 0) {
-        let empty_table_msg = document.createElement('span');
-        empty_table_msg.textContent = 'Result table is empty';
-        table_group.appendChild(empty_table_msg);
+        make_element('span', table_group, null, 'Result table is empty');
         table_chain.push({records: [], root_node: table_group, header: null});
-        document.getElementById('table_chain_holder').appendChild(table_group);
         return;
     }
     let table_row = document.createElement('div');
     table_row.setAttribute('class', 'flex_row standard_margin_top');
 
-    let table_window = document.createElement('div');
-    table_window.setAttribute('class', 'table_window');
+    let table_window = make_element('div', table_row, 'table_window');
 
-    table_row.appendChild(table_window);
-
-    let button_window = document.createElement('div');
-    let add_join_button = document.createElement('button');
-    add_join_button.setAttribute('class', 'dark_button tall_button');
-    add_join_button.textContent = 'Add\r\njoin\r\ntable\r\n>>>\r\n'
-    button_window.appendChild(add_join_button);
-    table_row.appendChild(button_window);
-
+    let button_window = make_element('div', table_row);
+    make_element('button', button_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
 
     let table = document.createElement('table');
 
