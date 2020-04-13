@@ -55,13 +55,6 @@ function strip_cr(line) {
 }
 
 
-function append_header_cell(row, cell_text) {
-    let cell = document.createElement('th');
-    cell.textContent = cell_text;
-    row.appendChild(cell);
-}
-
-
 function clean_table_chain(from_index) {
     while (table_chain.length > from_index) {
         let last_table = table_chain.pop();
@@ -86,13 +79,13 @@ function remove_children(root_node) {
 function populate_table(table, records, header_record) {
     let header_section = document.createElement('thead');
     let row = document.createElement('tr');
-    append_header_cell(row, 'NR');
+    make_element('th', row, null, 'NR');
     for (let i = 0; i < records[0].length; i++) {
         let column_name = `a${i + 1}`;
         if (header_record && i < header_record.length) {
             column_name += '\r\n' + header_record[i];
         }
-        append_header_cell(row, column_name);
+        make_element('th', row, null, column_name);
     }
     header_section.appendChild(row);
     table.appendChild(header_section);
