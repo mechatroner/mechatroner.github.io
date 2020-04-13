@@ -5,7 +5,21 @@ var table_chain = [];
 var last_delim = null;
 var last_policy = null;
 
-// FIXME support rfc-csv dialect
+
+// TODO support rfc-csv dialect
+
+
+function make_element(tag_name, parent_element=null, class_name=null, text_content=null) {
+    let result = document.createElement(tag_name);
+    if (class_name)
+        result.setAttribute('class', class_name);
+    if (text_content)
+        result.textContent = text_content;
+    if (parent_element)
+        parent_element.appendChild(result);
+    return result;
+}
+
 
 function load_module_from_string(module_name, node_module_string) {
     var module = {'exports': {}};
@@ -41,21 +55,8 @@ function strip_cr(line) {
 }
 
 
-function append_data_cell(row, cell_text, is_first) {
-    let cell = document.createElement('td');
-    cell.style.borderRight = '1px solid black';
-    cell.style.borderTop = '1px solid black';
-    if (is_first) {
-        cell.style.backgroundColor = '#E5E5E5';
-    }
-    cell.textContent = cell_text;
-    row.appendChild(cell);
-}
-
-
 function append_header_cell(row, cell_text) {
     let cell = document.createElement('th');
-    cell.style.borderRight = '1px solid black';
     cell.textContent = cell_text;
     row.appendChild(cell);
 }
@@ -99,9 +100,9 @@ function populate_table(table, records, header_record) {
     for (var nr = 0; nr < records.length && nr < max_display_records; nr++) {
         let row = document.createElement('tr');
         data_section.appendChild(row);
-        append_data_cell(row, nr + 1, true);
+        make_element('td', row, 'nr_cell', nr + 1);
         for (var nf = 0; nf < records[nr].length; nf++) {
-            append_data_cell(row, records[nr][nf], false);
+            make_element('td', row, null, records[nr][nf]);
         }
     }
     table.appendChild(data_section);
@@ -193,7 +194,7 @@ function make_next_chained_table_group(records) {
     let button_window = document.createElement('div');
     let add_join_button = document.createElement('button');
     add_join_button.setAttribute('class', 'dark_button tall_button');
-    add_join_button.textContent = 'Add\r\njoin\r\ntable'
+    add_join_button.textContent = 'Add\r\njoin\r\ntable\r\n>>>\r\n'
     button_window.appendChild(add_join_button);
     table_row.appendChild(button_window);
 
