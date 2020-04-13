@@ -182,8 +182,21 @@ function make_next_chained_table_group(records) {
         document.getElementById('table_chain_holder').appendChild(table_group);
         return;
     }
+    let table_row = document.createElement('div');
+    table_row.setAttribute('class', 'flex_row standard_margin_top');
+
     let table_window = document.createElement('div');
     table_window.setAttribute('class', 'table_window');
+
+    table_row.appendChild(table_window);
+
+    let button_window = document.createElement('div');
+    let add_join_button = document.createElement('button');
+    add_join_button.setAttribute('class', 'dark_button tall_button');
+    add_join_button.textContent = 'Add\r\njoin\r\ntable'
+    button_window.appendChild(add_join_button);
+    table_row.appendChild(button_window);
+
 
     let table = document.createElement('table');
 
@@ -209,7 +222,7 @@ function make_next_chained_table_group(records) {
         table_group.appendChild(save_button);
     if (warning_div)
         table_group.appendChild(warning_div);
-    table_group.appendChild(table_window);
+    table_group.appendChild(table_row);
     table_group.appendChild(make_run_button_group(table_chain.length, records[0]));
     table_chain.push({records: records, root_node: table_group, header: null});
     document.getElementById('table_chain_holder').appendChild(table_group);
