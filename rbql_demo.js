@@ -169,42 +169,24 @@ function make_next_chained_table_group(records) {
         table_chain.push({records: [], root_node: table_group, header: null});
         return;
     }
-    let table_row = document.createElement('div');
-    table_row.setAttribute('class', 'flex_row standard_margin_top');
-
+    let table_row = make_element('div', table_group, 'flex_row standard_margin_top');
     let table_window = make_element('div', table_row, 'table_window');
-
     let button_window = make_element('div', table_row);
     make_element('button', button_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
-
-    let table = document.createElement('table');
+    let table = make_element('table', table_window);
 
     populate_table(table, records, null);
 
-    let warning_div = null;
-    if (records.length > max_display_records) {
-        warning_div = document.createElement('div');
-        warning_div.setAttribute('class', 'table_cut_warning');
-        warning_div.textContent = `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`;
-    }
+    if (records.length > max_display_records)
+        make_element('div', table_group, 'table_cut_warning', `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`);
 
-    let save_button = null;
     if (table_chain.length) {
-        save_button = document.createElement('button');
-        save_button.setAttribute('class', 'dark_button');
-        save_button.textContent = 'Save result table to disk';
+        let save_button = make_element('button', table_group, 'dark_button', 'Save result table to disk');
         save_button.addEventListener("click", create_save_click_handler(table_chain.length));
     }
-    table_window.appendChild(table);
 
-    if (save_button)
-        table_group.appendChild(save_button);
-    if (warning_div)
-        table_group.appendChild(warning_div);
-    table_group.appendChild(table_row);
     table_group.appendChild(make_run_button_group(table_chain.length, records[0]));
     table_chain.push({records: records, root_node: table_group, header: null});
-    document.getElementById('table_chain_holder').appendChild(table_group);
 }
 
 
