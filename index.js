@@ -5,6 +5,7 @@ var table_chain = [];
 var last_delim = null;
 var last_policy = null;
 
+let table_upload_target = null;
 
 // TODO support rfc-csv dialect
 
@@ -161,6 +162,8 @@ function make_run_button_group(chain_index, header) {
 }
 
 
+
+
 function make_next_chained_table_group(records) {
     // http://jsfiddle.net/mmavko/2ysb0hmf/   - sticky trick example
     let table_group = make_element('div', document.getElementById('table_chain_holder'));
@@ -172,7 +175,12 @@ function make_next_chained_table_group(records) {
     let table_row = make_element('div', table_group, 'flex_row standard_margin_top');
     let table_window = make_element('div', table_row, 'table_window');
     let button_window = make_element('div', table_row);
-    make_element('button', button_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
+    let add_join_button = make_element('button', button_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
+    add_join_button.addEventListener("click", () => {
+        table_upload_target = 'join';
+        document.getElementById('default_join_info').style.display = 'block';
+        document.getElementById('table_load_dialog').style.display = 'block';
+    });
     let table = make_element('table', table_window);
 
     populate_table(table, records, null);
@@ -325,6 +333,8 @@ function open_udf_dialog() {
 
 
 function open_custom_table_dialog() {
+    table_upload_target = 'input';
+    document.getElementById('default_join_info').style.display = 'none';
     document.getElementById('table_load_dialog').style.display = 'block';
 }
 

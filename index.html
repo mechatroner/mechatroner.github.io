@@ -454,16 +454,13 @@ input {
     </h1>
     <!-- FIXME spell check -->
     <div class="description_paragraph">
-        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries for structured data (like CSV or TSV files). RBQL query is executed using one of the available general-purpose "backend" languages (currently Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
+        RBQL is a technology that provides SQL-like language for data-transformation and data-analysis queries for structured data (e.g. CSV files, log files, Python lists, JS arrays). RBQL evaluates input query using one of the available general-purpose "backend" languages (currently Python or JavaScript). RBQL allows to use non-SQL expressions inside SQL statements, e.g for JavaScript backend:
         <div class="code_snippet"><span class="red_span">select</span> a1, a2 * 10 <span class="red_span">where</span> a1 == &quot;Buy&quot; &amp;&amp; a4.indexOf('oil') != -1 <span class="red_span">order by</span> parseInt(a2), a4 <span class="red_span">limit 100</span></div>
-        Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use, you just need a basic understanding of SQL and one of the available backend languages. Maybe you already know RBQL!
+        Combination of SQL statements and expressions from a general-purpose language makes RBQL very easy to learn and use, you just need a basic understanding of SQL and one of the available backend languages. So maybe you already know RBQL!
         The first word &quot;Rainbow&quot; in RBQL reflects its diverse multi-language nature.
         <br>
         <br>
-        RBQL has simple modular design and no third-party dependencies. To use RBQL with Python backend you need python interpreter installed, for JavaScript backend you need Node.js.
-        <br>
-        <br>
-        RBQL is available as standalone CLI apps, text editor plugins and 2 libraries (for Python and JS) which will let you easily enhance your own app with SQL capabilities.
+        RBQL has simple modular design and no third-party dependencies. It is available as standalone CLI apps, text editor plugins and 2 libraries (for Python and JS) which would allow you to easily enhance your own app with SQL capabilities.
     </div>
 
     <div class="description_paragraph">
@@ -577,8 +574,8 @@ input {
 
 
 <div id="table_load_dialog">
-    <div id="default_join_info" style="display:none; margin-bottom: 10px">
-    <button id="upload_default_join" class="dark_button">Use demo join table</button>
+    <div id="default_join_info" style="display:none; margin-bottom:20px;">
+    <button id="upload_default_join" class="dark_button" style="margin-bottom:10px;">Use demo join table</button>
     You can use the default demo join table or upload your own:
     </div>
     <span>Select spreadsheet file to use. Your data is safe: the file won't be sent over network - all operations are performed locally in the browser. Performance of this demo is limited by your browser processing capabilities - do not submit very big files!</span><br>
