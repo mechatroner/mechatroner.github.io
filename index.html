@@ -19,7 +19,7 @@
 <script src="contrib/FileSaver/FileSaver.js"></script>
 <script src="rbql_suggest.js?version=26"></script>
 <script src="web_rbql.js?version=26"></script>
-<script src="rbql_demo.js?version=26"></script>
+<script src="index.js?version=26"></script>
 
 <title>RBQL - Rainbow Query Language</title>
 <style>
@@ -340,11 +340,10 @@ input {
 #table_load_dialog {
     padding: 5px;
     width: 50%;
-    height: 200px;
     top: 20%;
     left: 25%;
     z-index: 1000000;
-    background-color: #FFFCD3;
+    background-color: #FFFFFF;
     position: fixed;
     display: none;
     color: black;
@@ -578,6 +577,10 @@ input {
 
 
 <div id="table_load_dialog">
+    <div id="default_join_info" style="display:none; margin-bottom: 10px">
+    <button id="upload_default_join" class="dark_button">Use demo join table</button>
+    You can use the default demo join table or upload your own:
+    </div>
     <span>Select spreadsheet file to use. Your data is safe: the file won't be sent over network - all operations are performed locally in the browser. Performance of this demo is limited by your browser processing capabilities - do not submit very big files!</span><br>
     <br>
     <span class="infoMsg">1.</span><input id="doLoadTable" type="file"/>
