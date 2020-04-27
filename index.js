@@ -79,12 +79,12 @@ function remove_children(root_node) {
 }
 
 
-function populate_table(table, records, header_record) {
+function populate_table(table, records, header_record, column_name_prefix='a') {
     let header_section = make_element('thead', table);
     let row = make_element('tr', header_section);
     make_element('th', row, null, 'NR');
     for (let i = 0; i < records[0].length; i++) {
-        let column_name = `a${i + 1}`;
+        let column_name = column_name_prefix + String(i + 1);
         if (header_record && i < header_record.length) {
             column_name += '\r\n' + header_record[i];
         }
@@ -148,7 +148,7 @@ function make_run_button_group(chain_index, header) {
         if (table_chain[chain_index].join !== null) {
             table = table_chain[chain_index].root_node.getElementsByTagName("table")[1];
             remove_children(table);
-            populate_table(table, table[chain_index].join.records, table_chain[chain_index].join.header);
+            populate_table(table, table[chain_index].join.records, table_chain[chain_index].join.header, 'b');
         }
     });
     let input_elem = result.getElementsByTagName('input')[1];
@@ -176,9 +176,9 @@ function make_run_button_group(chain_index, header) {
 }
 
 
-function make_table(table_window, records) {
+function make_table(table_window, records, column_name_prefix) {
     let table = make_element('table', table_window);
-    populate_table(table, records, null);
+    populate_table(table, records, null, column_name_prefix);
     if (records.length > max_display_records)
         make_element('div', table_window, 'table_cut_warning', `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`);
 }
@@ -189,13 +189,13 @@ function make_next_chained_table_group(records) {
     let table_group = make_element('div', document.getElementById('table_chain_holder'));
     if (records.length == 0) {
         make_element('span', table_group, null, 'Result table is empty');
-        table_chain.push(root_node: table_group, input: {records: [], header: null}, join: {records: [], header: null});
+        table_chain.push({root_node: table_group, input: {records: [], header: null}, join: {records: [], header: null}});
         return;
     }
     let chain_index = table_chain.length;
     let table_row = make_element('div', table_group, 'flex_row standard_margin_top');
     let table_window = make_element('div', table_row, 'table_window', null, `input_window_${chain_index}`);
-    let join_window = make_element('div', table_row, null, `join_window_${chain_index}`);
+    let join_window = make_element('div', table_row, null, null, `join_window_${chain_index}`);
     let add_join_button = make_element('button', join_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
     (function(join_upload_chain_index) {
         add_join_button.addEventListener("click", () => {
@@ -205,7 +205,7 @@ function make_next_chained_table_group(records) {
         }); 
     })(chain_index);
 
-    make_table(table_window, records);
+    make_table(table_window, records, 'a');
 
     if (chain_index) {
         let save_button = make_element('button', table_group, 'dark_button', 'Save result table to disk');
@@ -213,14 +213,15 @@ function make_next_chained_table_group(records) {
     }
 
     table_group.appendChild(make_run_button_group(chain_index, records[0]));
-    table_chain.push(root_node: table_group, input: {records: records, header: null}, join: {records: [], header: null});
+    table_chain.push({root_node: table_group, input: {records: records, header: null}, join: {records: [], header: null}});
 }
 
 
 function add_join_table_to_chain_group(records, chain_index) {
     let join_window = document.getElementById(`join_window_${chain_index}`);
     join_window.getElementsByTagName("button")[0].remove();
-    make_table(join_window, records);
+    join_window.setAttribute('class', 'table_window');
+    make_table(join_window, records, 'b');
 }
 
 
