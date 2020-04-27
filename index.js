@@ -5,12 +5,12 @@ var table_chain = [];
 var last_delim = null;
 var last_policy = null;
 
-let table_upload_target = null;
+var last_join_upload_chain_index = null;
 
 // TODO support rfc-csv dialect
 
 
-function make_element(tag_name, parent_element=null, class_name=null, text_content=null) {
+function make_element(tag_name, parent_element=null, class_name=null, text_content=null, element_id=null) {
     let result = document.createElement(tag_name);
     if (class_name)
         result.setAttribute('class', class_name);
@@ -18,6 +18,8 @@ function make_element(tag_name, parent_element=null, class_name=null, text_conte
         result.textContent = text_content;
     if (parent_element)
         parent_element.appendChild(result);
+    if (element_id !== null)
+        result.id = element_id;
     return result;
 }
 
@@ -113,6 +115,19 @@ function send_tracking_info(element_type, event_type, tag) {
 }
 
 
+function adjust_records_and_header(skip_header_row, table_obj) {
+    let table_records = table_obj.records;
+    let header_row = table_obj.header;
+    if (skip_header_row && !header_row && table_records.length) {
+        table_obj.header = table_records.splice(0, 1)[0];
+    }
+    if (!skip_header_row && header_row) {
+        table_records.splice(0, 0, header_row);
+        table_obj.header = null;
+    }
+}
+
+
 function make_run_button_group(chain_index, header) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
@@ -123,19 +138,18 @@ function make_run_button_group(chain_index, header) {
     checkbox_elem.addEventListener('click', function() {
         send_tracking_info('Checkbox', 'click', 'skip_header_' + checkbox_elem.checked);
         let skip_header_row = checkbox_elem.checked;
-        let table_records = table_chain[chain_index].records;
-        let header_row = table_chain[chain_index].header;
-        if (skip_header_row && !header_row && table_records.length) {
-            table_chain[chain_index].header = table_records.splice(0, 1)[0];
-        }
-        if (!skip_header_row && header_row) {
-            table_records.splice(0, 0, header_row);
-            table_chain[chain_index].header = null;
-        }
+        adjust_records_and_header(skip_header_row, table_chain[chain_index].input);
+        if (table_chain[chain_index].join !== null)
+            adjust_records_and_header(skip_header_row, table_chain[chain_index].join);
 
         let table = table_chain[chain_index].root_node.getElementsByTagName("table")[0];
         remove_children(table);
-        populate_table(table, table_records, table_chain[chain_index].header);
+        populate_table(table, table[chain_index].input.records, table_chain[chain_index].input.header);
+        if (table_chain[chain_index].join !== null) {
+            table = table_chain[chain_index].root_node.getElementsByTagName("table")[1];
+            remove_children(table);
+            populate_table(table, table[chain_index].join.records, table_chain[chain_index].join.header);
+        }
     });
     let input_elem = result.getElementsByTagName('input')[1];
     input_elem.id = `query_input_${chain_index}`;
@@ -162,6 +176,12 @@ function make_run_button_group(chain_index, header) {
 }
 
 
+function make_table(table_window, records) {
+    let table = make_element('table', table_window);
+    populate_table(table, records, null);
+    if (records.length > max_display_records)
+        make_element('div', table_window, 'table_cut_warning', `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`);
+}
 
 
 function make_next_chained_table_group(records) {
@@ -169,37 +189,43 @@ function make_next_chained_table_group(records) {
     let table_group = make_element('div', document.getElementById('table_chain_holder'));
     if (records.length == 0) {
         make_element('span', table_group, null, 'Result table is empty');
-        table_chain.push({records: [], root_node: table_group, header: null});
+        table_chain.push(root_node: table_group, input: {records: [], header: null}, join: {records: [], header: null});
         return;
     }
+    let chain_index = table_chain.length;
     let table_row = make_element('div', table_group, 'flex_row standard_margin_top');
-    let table_window = make_element('div', table_row, 'table_window');
-    let button_window = make_element('div', table_row);
-    let add_join_button = make_element('button', button_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
-    add_join_button.addEventListener("click", () => {
-        table_upload_target = 'join';
-        document.getElementById('default_join_info').style.display = 'block';
-        document.getElementById('table_load_dialog').style.display = 'block';
-    });
-    let table = make_element('table', table_window);
+    let table_window = make_element('div', table_row, 'table_window', null, `input_window_${chain_index}`);
+    let join_window = make_element('div', table_row, null, `join_window_${chain_index}`);
+    let add_join_button = make_element('button', join_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
+    (function(join_upload_chain_index) {
+        add_join_button.addEventListener("click", () => {
+            last_join_upload_chain_index = join_upload_chain_index;
+            document.getElementById('default_join_info').style.display = 'block';
+            document.getElementById('table_load_dialog').style.display = 'block';
+        }); 
+    })(chain_index);
 
-    populate_table(table, records, null);
+    make_table(table_window, records);
 
-    if (records.length > max_display_records)
-        make_element('div', table_group, 'table_cut_warning', `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`);
-
-    if (table_chain.length) {
+    if (chain_index) {
         let save_button = make_element('button', table_group, 'dark_button', 'Save result table to disk');
-        save_button.addEventListener("click", create_save_click_handler(table_chain.length));
+        save_button.addEventListener("click", create_save_click_handler(chain_index));
     }
 
-    table_group.appendChild(make_run_button_group(table_chain.length, records[0]));
-    table_chain.push({records: records, root_node: table_group, header: null});
+    table_group.appendChild(make_run_button_group(chain_index, records[0]));
+    table_chain.push(root_node: table_group, input: {records: records, header: null}, join: {records: [], header: null});
 }
 
 
+function add_join_table_to_chain_group(records, chain_index) {
+    let join_window = document.getElementById(`join_window_${chain_index}`);
+    join_window.getElementsByTagName("button")[0].remove();
+    make_table(join_window, records);
+}
+
+
+
 function do_load_table(file_text, delim, policy) {
-    clean_table_chain(0);
     var lines = file_text.split('\n');
     var records = [];
     var warning_line = null;
@@ -220,19 +246,25 @@ function do_load_table(file_text, delim, policy) {
     if (warning_line != null) {
         show_warnings('Input file has quoting issues', ['Double quotes usage is not consistent at some lines. E.g. at line ' + warning_line]);
     }
-    make_next_chained_table_group(records);
+    if (last_join_upload_chain_index === null) {
+        clean_table_chain(0);
+        make_next_chained_table_group(records);
+    } else {
+        clean_table_chain(last_join_upload_chain_index + 1);
+        add_join_table_to_chain_group(records, last_join_upload_chain_index);
+    }
 }
 
 
-function load_default_table(callback_func) {
-    var local_url = 'movies.tsv';
+function load_default_tsv_table(local_url, callback_func) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             last_delim = '\t';
             last_policy = 'simple';
             do_load_table(xhr.responseText, last_delim, last_policy);
-            callback_func();
+            if (callback_func)
+                callback_func();
         }
     }
     xhr.open('GET', local_url, true);
@@ -333,7 +365,7 @@ function open_udf_dialog() {
 
 
 function open_custom_table_dialog() {
-    table_upload_target = 'input';
+    last_join_upload_chain_index = null;
     document.getElementById('default_join_info').style.display = 'none';
     document.getElementById('table_load_dialog').style.display = 'block';
 }
@@ -341,6 +373,12 @@ function open_custom_table_dialog() {
 
 function close_custom_table_dialog() {
     document.getElementById('table_load_dialog').style.display = 'none';
+}
+
+
+function process_upload_default_join_table() {
+    load_default_tsv_table('countries.tsv', null);
+    close_custom_table_dialog();
 }
 
 
@@ -385,12 +423,13 @@ function after_load() {
     document.getElementById("cancelSubmit").addEventListener("click", close_custom_table_dialog);
     document.getElementById("show_examples_button").addEventListener("click", () => { toggle_expandable_block('show_examples_button', 'examples_block'); });
     document.getElementById("show_explanation_button").addEventListener("click", () => { toggle_expandable_block('show_explanation_button', 'explanation_block'); });
+    document.getElementById("upload_default_join").addEventListener("click", process_upload_default_join_table);
 }
 
 
 function main() {
     load_module('csv_utils', 'csv_utils.js', () => {
-        load_default_table(after_load);
+        load_default_tsv_table('movies.tsv', after_load);
     });
 }
 
