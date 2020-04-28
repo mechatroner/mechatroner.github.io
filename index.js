@@ -139,16 +139,15 @@ function make_run_button_group(chain_index, header) {
         send_tracking_info('Checkbox', 'click', 'skip_header_' + checkbox_elem.checked);
         let skip_header_row = checkbox_elem.checked;
         adjust_records_and_header(skip_header_row, table_chain[chain_index].input);
-        if (table_chain[chain_index].join !== null)
-            adjust_records_and_header(skip_header_row, table_chain[chain_index].join);
 
-        let table = table_chain[chain_index].root_node.getElementsByTagName("table")[0];
+        let table = document.getElementById(`a_table_${chain_index}`);
         remove_children(table);
-        populate_table(table, table[chain_index].input.records, table_chain[chain_index].input.header);
+        populate_table(table, table_chain[chain_index].input.records, table_chain[chain_index].input.header);
         if (table_chain[chain_index].join !== null) {
-            table = table_chain[chain_index].root_node.getElementsByTagName("table")[1];
-            remove_children(table);
-            populate_table(table, table[chain_index].join.records, table_chain[chain_index].join.header, 'b');
+            adjust_records_and_header(skip_header_row, table_chain[chain_index].join);
+            let join_table = document.getElementById(`b_table_${chain_index}`);
+            remove_children(join_table);
+            populate_table(join_table, table_chain[chain_index].join.records, table_chain[chain_index].join.header, 'b');
         }
     });
     let input_elem = result.getElementsByTagName('input')[1];
@@ -176,8 +175,9 @@ function make_run_button_group(chain_index, header) {
 }
 
 
-function make_table(table_window, records, column_name_prefix) {
-    let table = make_element('table', table_window);
+function make_table(table_window, records, chain_index, column_name_prefix) {
+    let table_id = `${column_name_prefix}_table_${chain_index}`;
+    let table = make_element('table', table_window, null, null, table_id);
     populate_table(table, records, null, column_name_prefix);
     if (records.length > max_display_records)
         make_element('div', table_window, 'table_cut_warning', `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`);
@@ -205,7 +205,7 @@ function make_next_chained_table_group(records) {
         }); 
     })(chain_index);
 
-    make_table(table_window, records, 'a');
+    make_table(table_window, records, chain_index, 'a');
 
     if (chain_index) {
         let save_button = make_element('button', table_group, 'dark_button', 'Save result table to disk');
@@ -221,7 +221,8 @@ function add_join_table_to_chain_group(records, chain_index) {
     let join_window = document.getElementById(`join_window_${chain_index}`);
     join_window.getElementsByTagName("button")[0].remove();
     join_window.setAttribute('class', 'table_window');
-    make_table(join_window, records, 'b');
+    make_table(join_window, records, chain_index, 'b');
+    table_chain[chain_index].join.records = records;
 }
 
 
