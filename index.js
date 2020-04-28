@@ -143,7 +143,7 @@ function make_run_button_group(chain_index, header) {
         let table = document.getElementById(`a_table_${chain_index}`);
         remove_children(table);
         populate_table(table, table_chain[chain_index].input.records, table_chain[chain_index].input.header);
-        if (table_chain[chain_index].join !== null) {
+        if (table_chain[chain_index].join.records !== null) {
             adjust_records_and_header(skip_header_row, table_chain[chain_index].join);
             let join_table = document.getElementById(`b_table_${chain_index}`);
             remove_children(join_table);
@@ -189,7 +189,7 @@ function make_next_chained_table_group(records) {
     let table_group = make_element('div', document.getElementById('table_chain_holder'));
     if (records.length == 0) {
         make_element('span', table_group, null, 'Result table is empty');
-        table_chain.push({root_node: table_group, input: {records: [], header: null}, join: {records: [], header: null}});
+        table_chain.push({root_node: table_group, input: {records: [], header: null}, join: {records: null, header: null}});
         return;
     }
     let chain_index = table_chain.length;
@@ -213,7 +213,7 @@ function make_next_chained_table_group(records) {
     }
 
     table_group.appendChild(make_run_button_group(chain_index, records[0]));
-    table_chain.push({root_node: table_group, input: {records: records, header: null}, join: {records: [], header: null}});
+    table_chain.push({root_node: table_group, input: {records: records, header: null}, join: {records: null, header: null}});
 }
 
 
@@ -288,6 +288,12 @@ function start_rbql(src_chain_index) {
     if (!input_column_names && input_table.length)
         input_column_names = input_table[0];
 
+    let join_table = table_chain[src_chain_index].join.records;
+    let join_column_names = table_chain[src_chain_index].join.header;
+    if (join_table !== null && !join_column_names && join_table.length) {
+        join_column_names = join_table[0];
+    }
+
     let error_handler = function(exception) {
         let [error_type, error_msg] = rbql.exception_to_error_info(exception);
         show_error(error_type, error_msg);
@@ -301,7 +307,7 @@ function start_rbql(src_chain_index) {
         make_next_chained_table_group(output_table);
     }
     let user_init_code = document.getElementById('udf_text_area').textContent;
-    rbql.query_table(user_query, input_table, output_table, warnings, null, input_column_names, null, true, user_init_code).then(success_handler).catch(error_handler);
+    rbql.query_table(user_query, input_table, output_table, warnings, join_table, input_column_names, join_column_names, true, user_init_code).then(success_handler).catch(error_handler);
 }
 
 
