@@ -283,8 +283,8 @@ function start_rbql(src_chain_index) {
         return;
     let output_table = [];
     let warnings = [];
-    let input_table = table_chain[src_chain_index].records;
-    let input_column_names = table_chain[src_chain_index].header;
+    let input_table = table_chain[src_chain_index].input.records;
+    let input_column_names = table_chain[src_chain_index].input.header;
     if (!input_column_names && input_table.length)
         input_column_names = input_table[0];
 
