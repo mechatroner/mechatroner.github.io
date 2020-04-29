@@ -213,7 +213,7 @@ function make_next_chained_table_group(records) {
     let table_row = make_element('div', table_group, 'flex_row standard_margin_top');
     let table_window = make_element('div', table_row, 'table_window', null, `input_window_${chain_index}`);
     let join_window = make_element('div', table_row, null, null, `join_window_${chain_index}`);
-    let add_join_button = make_element('button', join_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n>>>\r\n');
+    let add_join_button = make_element('button', join_window, 'dark_button tall_button', 'Add\r\njoin\r\ntable\r\n"b"\r\n>>>\r\n');
     (function(join_upload_chain_index) {
         add_join_button.addEventListener("click", () => {
             last_join_upload_chain_index = join_upload_chain_index;
