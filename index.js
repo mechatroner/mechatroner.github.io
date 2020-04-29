@@ -128,6 +128,14 @@ function adjust_records_and_header(skip_header_row, table_obj) {
 }
 
 
+function get_table_header(table_info) {
+    let header = table_info.header;
+    if (!header && table_info.records.length)
+        header = table_info.records[0];
+    return header;
+}
+
+
 function make_run_button_group(chain_index, header) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
@@ -152,8 +160,17 @@ function make_run_button_group(chain_index, header) {
     });
     let input_elem = result.getElementsByTagName('input')[1];
     input_elem.id = `query_input_${chain_index}`;
+
+    let fetch_join_header_callback = function(join_table_id, adjust_join_table_headers) {
+        let join_header = null;
+        if (join_table_id.toLowerCase() == 'b') {
+            join_header = get_table_header(table_chain[chain_index].join);
+        }
+        adjust_join_table_headers(join_header);
+    }
+
     if (chain_index == 0) { // FIXME make suggest context a class/object which can be initialized for each table separately, to get rid of this hack
-        rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header);
+        rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header, fetch_join_header_callback);
     }
 
     input_elem.addEventListener("keyup", function(event) {
@@ -283,16 +300,6 @@ function start_rbql(src_chain_index) {
         return;
     let output_table = [];
     let warnings = [];
-    let input_table = table_chain[src_chain_index].input.records;
-    let input_column_names = table_chain[src_chain_index].input.header;
-    if (!input_column_names && input_table.length)
-        input_column_names = input_table[0];
-
-    let join_table = table_chain[src_chain_index].join.records;
-    let join_column_names = table_chain[src_chain_index].join.header;
-    if (join_table !== null && !join_column_names && join_table.length) {
-        join_column_names = join_table[0];
-    }
 
     let error_handler = function(exception) {
         let [error_type, error_msg] = rbql.exception_to_error_info(exception);
@@ -307,6 +314,11 @@ function start_rbql(src_chain_index) {
         make_next_chained_table_group(output_table);
     }
     let user_init_code = document.getElementById('udf_text_area').textContent;
+
+    let input_table = table_chain[src_chain_index].input.records;
+    let input_column_names = get_table_header(table_chain[src_chain_index].input);
+    let join_table = table_chain[src_chain_index].join.records;
+    let join_column_names = join_table === null ? null : get_table_header(table_chain[src_chain_index].join);
     rbql.query_table(user_query, input_table, output_table, warnings, join_table, input_column_names, join_column_names, true, user_init_code).then(success_handler).catch(error_handler);
 }
 
