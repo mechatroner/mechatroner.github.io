@@ -67,7 +67,7 @@ body {
 
 .description_paragraph {
     margin-bottom: 20px;
-    max-width: 1100px;
+    max-width: 75%;
 }
 
 .flex_row {
@@ -266,9 +266,9 @@ input {
 .expandable_block {
     background-color: #FFE2CC;
     padding-top: 10px;
-    padding-bottom: 5px;
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
 }
 
 
@@ -471,54 +471,17 @@ input {
         RBQL implementation is based on a clever hack, see the explanation below if you are curious.
         <button class="expandable_button" id="show_explanation_button">+&nbsp;&nbsp;How RBQL works: Explanation</button>
         <div class="expandable_block" id="explanation_block" style="display:none">
-            RBQL parses SQL-like user query, creates a new python or JavaScript worker module, then imports and executes it.
-            <br>
-            <br>
-            Explanation of simplified Python version of RBQL algorithm by example.
-            <br>
-            User enters the following query, which is stored as a string Q:
-            <div class="code_snippet">
-                SELECT a3, int(a4) + 100, len(a2) WHERE a1 != 'SELL'
-            </div>
-            RBQL replaces all a{i} substrings in the query string Q with a[{i - 1}] substrings. The result is the following string:
-            <div class="code_snippet">
-                Q = "SELECT a[2], int(a[3]) + 100, len(a[1]) WHERE a[0] != 'SELL'"
-            </div>
-            RBQL searches for "SELECT" and "WHERE" keywords in the query string Q, throws the keywords away, and puts everything after these keywords into two variables S - select part and W - where part, so we will get:
-            <div class="code_snippet">
-                S = "a[2], int(a[3]) + 100, len(a[1])"
-                <br>
-                W = "a[0] != 'SELL'"
-            </div>
-            RBQL has a static template script which looks like this:
-            <div class="code_snippet">
-                for line in sys.stdin:
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;a = line.rstrip('\n').split('\t')
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;if %%%W_Expression%%%:
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;out_fields = [%%%S_Expression%%%]
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print '\t'.join([str(v) for v in out_fields])
-            </div>
-            RBQL replaces %%%W_Expression%%% with W and %%%S_Expression%%% with S so we get the following script:
-            <div class="code_snippet">
-                for line in sys.stdin:
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;a = line.rstrip('\n').split('\t')
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;if a[0] != 'SELL':
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;out_fields = [a[2], int(a[3]) + 100, len(a[1])]
-                <br>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print '\t'.join([str(v) for v in out_fields])
-            </div>
-            RBQL runs the patched script against user's data file:
-            <div class="code_snippet">
-                ./tmp_script.py &lt; data.tsv &gt; result.tsv
-            </div>
-            Result set of the original query (SELECT a3, int(a4) + 100, len(a2) WHERE a1 != 'SELL') is in the "result.tsv" file. It is clear that this simplified version can only work with tab-separated files.
+            RBQL core idea is based on dynamic code generation and execution with <a href="https://docs.python.org/3/library/functions.html#exec">exec</a> and <a href="https://www.w3schools.com/jsref/jsref_eval.asp">eval</a> functions.<br><br>
+            The main steps that RBQL engine performs when processing a query:
+            <ol>
+                <li>Shallow parsing: split the query into logical expressions such as "SELECT", "WHERE", "ORDER BY", etc.</li>
+                <li>Embed the expression segments into the main loop template code</li>
+                <li>Execute the hydrated loop code</li>
+            </ol>
+
+            Here you can find a very basic working script (only 15 lines of Python code) which implements this idea: <a href="https://github.com/mechatroner/mini-rbql/blob/master/mini_rbql.py">mini_rbql.py</a><br>
+            The diagram below gives an overview of the main RBQL components and data flow:
+            <img src="https://i.imgur.com/DXkRZU6.png" style="max-width:100%" title="RBQL Diagram">
         </div>
     </div>
 </div>
