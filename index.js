@@ -47,7 +47,7 @@ function load_module(module_name, url, callback_func) {
 }
 
 
-// TODO switch to npm and soure web_rbql.js and csv_utils.js from node_modules in index.html
+// TODO switch to npm and soure rbql.js and csv_utils.js from node_modules in index.html
 
 
 function strip_cr(line) {
