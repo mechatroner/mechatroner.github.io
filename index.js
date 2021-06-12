@@ -128,14 +128,6 @@ function adjust_records_and_header(skip_header_row, table_obj) {
 }
 
 
-function get_table_header(table_info) {
-    let header = table_info.header;
-    if (!header && table_info.records.length)
-        header = table_info.records[0];
-    return header;
-}
-
-
 function make_run_button_group(chain_index, header) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
@@ -150,7 +142,7 @@ function make_run_button_group(chain_index, header) {
 
         let table = document.getElementById(`a_table_${chain_index}`);
         remove_children(table);
-        populate_table(table, table_chain[chain_index].input.records, table_chain[chain_index].input.header);
+        populate_table(table, table_chain[chain_index].input.records, table_chain[chain_index].input.header, 'a');
         if (table_chain[chain_index].join.records !== null) {
             adjust_records_and_header(skip_header_row, table_chain[chain_index].join);
             let join_table = document.getElementById(`b_table_${chain_index}`);
@@ -164,11 +156,12 @@ function make_run_button_group(chain_index, header) {
     let fetch_join_header_callback = function(join_table_id, adjust_join_table_headers) {
         let join_header = null;
         if (join_table_id.toLowerCase() == 'b') {
-            join_header = get_table_header(table_chain[chain_index].join);
+            join_header = table_chain[chain_index].join.header;
         }
         adjust_join_table_headers(join_header);
     }
 
+    // FIXME for some reason suggest doesn't use header but instead uses data from the first row
     if (chain_index == 0) { // FIXME make suggest context a class/object which can be initialized for each table separately, to get rid of this hack
         rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header, fetch_join_header_callback);
     }
@@ -192,21 +185,23 @@ function make_run_button_group(chain_index, header) {
 }
 
 
-function make_table(table_window, records, chain_index, column_name_prefix) {
+function make_table(table_window, records, header, chain_index, column_name_prefix) {
     let table_id = `${column_name_prefix}_table_${chain_index}`;
     let table = make_element('table', table_window, null, null, table_id);
-    populate_table(table, records, null, column_name_prefix);
+    populate_table(table, records, header, column_name_prefix);
     if (records.length > max_display_records)
         make_element('div', table_window, 'table_cut_warning', `Warning. Table is too big: showing only top ${max_display_records} entries, but the next RBQL query will be applied to the whole table (${records.length} records)`);
 }
 
 
-function make_next_chained_table_group(records) {
+function make_next_chained_table_group(records, header) {
+    if (!header || !header.length)
+        header = null;
     // http://jsfiddle.net/mmavko/2ysb0hmf/   - sticky trick example
     let table_group = make_element('div', document.getElementById('table_chain_holder'));
     if (records.length == 0) {
         make_element('span', table_group, null, 'Result table is empty');
-        table_chain.push({root_node: table_group, input: {records: [], header: null}, join: {records: null, header: null}});
+        table_chain.push({root_node: table_group, input: {records: [], header: header}, join: {records: null, header: null}});
         return;
     }
     let chain_index = table_chain.length;
@@ -222,7 +217,7 @@ function make_next_chained_table_group(records) {
         }); 
     })(chain_index);
 
-    make_table(table_window, records, chain_index, 'a');
+    make_table(table_window, records, header, chain_index, 'a');
 
     if (chain_index) {
         let save_button = make_element('button', table_group, 'dark_button', 'Save result table to disk');
@@ -230,18 +225,17 @@ function make_next_chained_table_group(records) {
     }
 
     table_group.appendChild(make_run_button_group(chain_index, records[0]));
-    table_chain.push({root_node: table_group, input: {records: records, header: null}, join: {records: null, header: null}});
+    table_chain.push({root_node: table_group, input: {records: records, header: header}, join: {records: null, header: null}});
 }
 
 
-function add_join_table_to_chain_group(records, chain_index) {
+function add_join_table_to_chain_group(records, header, chain_index) {
     let join_window = document.getElementById(`join_window_${chain_index}`);
     join_window.getElementsByTagName("button")[0].remove();
     join_window.setAttribute('class', 'table_window');
-    make_table(join_window, records, chain_index, 'b');
+    make_table(join_window, records, header, chain_index, 'b');
     table_chain[chain_index].join.records = records;
 }
-
 
 
 function do_load_table(file_text, delim, policy) {
@@ -262,15 +256,19 @@ function do_load_table(file_text, delim, policy) {
         }
         records.push(fields);
     }
+    let header = null;
+    if (records && records.length) {
+        header = records.splice(0, 1)[0];
+    }
     if (warning_line != null) {
         show_warnings('Input file has quoting issues', ['Double quotes usage is not consistent at some lines. E.g. at line ' + warning_line]);
     }
     if (last_join_upload_chain_index === null) {
         clean_table_chain(0);
-        make_next_chained_table_group(records);
+        make_next_chained_table_group(records, header);
     } else {
         clean_table_chain(last_join_upload_chain_index + 1);
-        add_join_table_to_chain_group(records, last_join_upload_chain_index);
+        add_join_table_to_chain_group(records, header, last_join_upload_chain_index);
     }
 }
 
@@ -299,6 +297,7 @@ function start_rbql(src_chain_index) {
     if (!user_query)
         return;
     let output_table = [];
+    let output_column_names = [];
     let warnings = [];
 
     let error_handler = function(exception) {
@@ -311,15 +310,15 @@ function start_rbql(src_chain_index) {
         if (warnings.length) {
             show_warnings('RBQL Query has finished with Warnings', warnings);
         }
-        make_next_chained_table_group(output_table);
+        make_next_chained_table_group(output_table, output_column_names);
     }
     let user_init_code = document.getElementById('udf_text_area').textContent;
 
     let input_table = table_chain[src_chain_index].input.records;
-    let input_column_names = get_table_header(table_chain[src_chain_index].input);
+    let input_column_names = table_chain[src_chain_index].input.header;
     let join_table = table_chain[src_chain_index].join.records;
-    let join_column_names = join_table === null ? null : get_table_header(table_chain[src_chain_index].join);
-    rbql.query_table(user_query, input_table, output_table, warnings, join_table, input_column_names, join_column_names, true, user_init_code).then(success_handler).catch(error_handler);
+    let join_column_names = join_table === null ? null : table_chain[src_chain_index].join.header;
+    rbql.query_table(user_query, input_table, output_table, warnings, join_table, input_column_names, join_column_names, output_column_names, true, user_init_code).then(success_handler).catch(error_handler);
 }
 
 
