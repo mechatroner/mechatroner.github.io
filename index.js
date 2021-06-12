@@ -128,7 +128,7 @@ function adjust_records_and_header(skip_header_row, table_obj) {
 }
 
 
-function make_run_button_group(chain_index, header) {
+function make_run_button_group(chain_index) {
     let proto_group = document.getElementById('proto_query_group');
     let result = proto_group.cloneNode(true);
     result.setAttribute('style', 'display: block');
@@ -161,9 +161,8 @@ function make_run_button_group(chain_index, header) {
         adjust_join_table_headers(join_header);
     }
 
-    // FIXME for some reason suggest doesn't use header but instead uses data from the first row
     if (chain_index == 0) { // FIXME make suggest context a class/object which can be initialized for each table separately, to get rid of this hack
-        rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, header, fetch_join_header_callback);
+        rbql_suggest.initialize_suggest(input_elem.id, 'query_suggest', 'suggest_button', null, table_chain[chain_index].input.header, fetch_join_header_callback);
     }
 
     input_elem.addEventListener("keyup", function(event) {
@@ -224,8 +223,8 @@ function make_next_chained_table_group(records, header) {
         save_button.addEventListener("click", create_save_click_handler(chain_index));
     }
 
-    table_group.appendChild(make_run_button_group(chain_index, records[0]));
     table_chain.push({root_node: table_group, input: {records: records, header: header}, join: {records: null, header: null}});
+    table_group.appendChild(make_run_button_group(chain_index));
 }
 
 
