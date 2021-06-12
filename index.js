@@ -234,6 +234,7 @@ function add_join_table_to_chain_group(records, header, chain_index) {
     join_window.setAttribute('class', 'table_window');
     make_table(join_window, records, header, chain_index, 'b');
     table_chain[chain_index].join.records = records;
+    table_chain[chain_index].join.header = header;
 }
 
 
