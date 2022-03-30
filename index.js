@@ -364,8 +364,8 @@ function smart_join(fields, delim, policy) {
 
 
 function save_result_table(chain_index) {
-    let table_records = table_chain[chain_index].records;
-    let header_row = table_chain[chain_index].header;
+    let table_records = table_chain[chain_index].input.records;
+    let header_row = table_chain[chain_index].input.header;
     if (header_row)
         table_records = [header_row].concat(table_records);
     let data_lines = table_records.map(r => smart_join(r, last_delim, last_policy));
