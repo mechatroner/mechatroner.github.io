@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Blog</title>
+    <link rel="stylesheet" href="blogpost_common.css">
+</head>
+<body>
+    <div class="container">
+        <div class="post">
+            <h1>Row Wrapping In Tables</h1>
+            <p>
+                Recently there was a patch contributed to the Rainbow CSV extension in VSCode that was unconditionally
+                disabling editor's word wrap feature. The intent was do disable it in "Virtual Align" mode only, but 
+                unfortunatelly, it is not possible to disable it only when the columns are aligned.
+                So at first I didn't think much about it, and acccepted the patch but then I realized that having the word wrap enabled
+                is actually a useful feature when looking at wide tables that don't fit a single screen.
+            </p>
+            <p>
+                Word wrap or "Row wrap" as we will call it here allows to see the whole row without scrolling horizontally.
+                This is especially beneficial if for example you are interested in 2 columns that are far apart from each other
+                (e.g. column #1 and column #20) and can't be seen together simultaneously. The problem with wrapping the rows is
+                that now it makes it harder to read the table because it's harder to see which cell belongs to which column.
+                But with distinctive color highlighting or decorations for either all columns or only the columns of interest
+                (column #1 and column #20 as in our example) it becomes easy again.
+            </p>
+            <p>
+                I was actually using "Row wrap" feature all the time in my Vim Rainbow CSV setup without realizing,
+                probably because I have word-wrap enabled by default in Vim but not in VSCode.
+                So I had to revert the part of the patch that was disabling the word wrap and also added a feature to decorate up to 3
+                columns of interest with borders, this really helps because after 10 columns the syntax colors start to repeat.
+            </p>
+            <p>
+                Another way to facilitate Row Wrapping is to use alternate colors for the logical records which can now 
+                consists of multiple physical rows. This feature was also recently added to Rainbow CSV and I hope would get some
+                traction with the users.
+            </p>
+            <p>
+                A true "Row Wrapping" would probably wrap the rows at the cell boundaries but in VSCode it is based on the editor's word wrap
+                feature which is obviously not aware of the table structure.
+            </p>
+        </div>
+        <div class="navigation">
+            <ul>
+                <li><a href="/">Main Page</a></li>
+                <li><a href="hello_world.html">Hello World</a></li>
+                <li><a href="row_wrap.html">Row Wrapping</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

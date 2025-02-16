@@ -1,0 +1,120 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    max-width: 960px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+header {
+    text-align: left; /* Center header content by default */
+    margin-bottom: 20px;
+}
+
+.profile-pic {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+    /* Remove float for mobile-first approach */
+    float: none; /* Remove float */
+    display: block; /* Make it a block-level element */
+    margin-left: auto; /* Center horizontally */
+    margin-right: auto; /* Center horizontally */
+}
+
+header h1 {
+    padding-top: 0; /* Reset padding */
+    text-align: left; /* Ensure text is centered */
+}
+
+
+.bio, .projects, .blog, .contact {
+    margin-bottom: 20px;
+    clear: both; /* Not strictly needed now, but good practice */
+}
+
+h2 {
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    color: #555;
+}
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    color: #777;
+}
+
+.head_container {
+    display: flex;
+    flex-direction: column; /* Default: Stacked vertically */
+    width: 100%;
+}
+
+.div1, .div2 {
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%; /* Full width by default */
+}
+
+.div2 {
+    margin-top: 10px; /* Margin for small screens (when stacked) */
+}
+  
+
+/* Media Query for Larger Screens (e.g., Tablets and Desktops) */
+@media (min-width: 800px) {
+    .head_container {
+        flex-direction: row; /* Side-by-side */
+        justify-content: flex-start; /* Align to the left */
+    }
+    
+    .div1, .div2 {
+        width: auto;
+    }
+    .div2{
+        margin-top:0; /* remove the margin on big screens */
+        margin-left: 20px; /* Add margin between divs on large screens */
+    }
+}
