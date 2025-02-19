@@ -1,6 +1,7 @@
 var blog_posts = [
     { file_name: "hello_world.html", bar_title: "Hello World", date: "2025-02-15" },
-    { file_name: "row_wrap.html", bar_title: "Row Wrapping", date: "2025-02-15" }
+    { file_name: "row_wrap.html", bar_title: "Row Wrapping", date: "2025-02-15" },
+    { file_name: "how_i_made_this_site.html", bar_title: "How I made this site", date: "2025-02-18" }
 ];
 
 
@@ -32,14 +33,8 @@ function buildNavigationBar() {
     ul.appendChild(mainPageLi);
 
 
-    // Sort blog posts by date (newest first)
-    blog_posts.sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
-    });
-
-
     // Add links for each blog post
-    for (const post of blog_posts.slice().reverse()) {
+    for (const post of blog_posts) {
         const li = document.createElement("li");
         const link = document.createElement("a");
         link.href = post.file_name;
@@ -47,7 +42,7 @@ function buildNavigationBar() {
         li.appendChild(link);
         ul.appendChild(li);
         const date_footer = document.getElementById("date_stamp");
-        date_footer.textContent = `${post.date} Mechatroner.`
+        date_footer.textContent = `${post.date} Mechatroner.`;
     }
 }
 
