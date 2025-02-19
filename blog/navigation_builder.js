@@ -1,6 +1,6 @@
 var blog_posts = [
-    { file_name: "hello_world.html", bar_title: "Hello World", date: "2023-10-26" },
-    { file_name: "row_wrap.html", bar_title: "Row Wrapping", date: "2023-10-27" }
+    { file_name: "hello_world.html", bar_title: "Hello World", date: "2025-02-15" },
+    { file_name: "row_wrap.html", bar_title: "Row Wrapping", date: "2025-02-15" }
 ];
 
 
@@ -46,6 +46,8 @@ function buildNavigationBar() {
         link.textContent = post.bar_title;
         li.appendChild(link);
         ul.appendChild(li);
+        const date_footer = document.getElementById("date_stamp");
+        date_footer.textContent = `${post.date} Mechatroner.`
     }
 }
 
