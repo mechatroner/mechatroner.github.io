@@ -1,7 +1,8 @@
 var blog_posts = [
     { file_name: "hello_world.html", bar_title: "Hello World", date: "2025-02-15" },
     { file_name: "row_wrap.html", bar_title: "Row Wrapping", date: "2025-02-15" },
-    { file_name: "how_i_made_this_site.html", bar_title: "How I made this site", date: "2025-02-18" }
+    { file_name: "how_i_made_this_site.html", bar_title: "How I made this site", date: "2025-02-18" },
+    { file_name: "json_stream.html", bar_title: "JSON Stream", date: "2026-10-14" }
 ];
 
 
