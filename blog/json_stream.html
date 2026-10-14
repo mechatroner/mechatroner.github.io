@@ -14,16 +14,13 @@
                 I guess everyone has heard about JSON Lines File format, there is even an official website that describes it: <a href="https://jsonlines.org/">jsonlines.org</a></br>
                 So if you have a bunch of json objects you can serialize them one by one and print to stdout - this way you get "Json lines". Easy.
                 Now what happens if we serialize these objects in "pretty_print" mode and again dump them to stdout? This is how you get "Json Stream" format.
-            </p>
-            <p>
-                For some reason Json stream is not yet documented anywhere as of Oct 14 2026, but it is widelly used, e.g. jq tool handles Json stream by default.
-                I believe you would also end up with Json stream if you try to read from Google pubsub into a file.
+                For some reason Json stream unlike Json Lines apparently has no offical name as of Oct 14 2026. This wikipedia article for example calls it <a href="https://en.wikipedia.org/wiki/JSON_streaming#Concatenated_JSON">"Concatenated JSON"</a>. What kind of branding is this? Let's just call it "Json Stream" because all other json streaming methods are clearly inferior (except json lines but it already has a name).
                 There is also no official extension for json stream files. Json lines uses ".jsonl" extension, maybe Json stream can adopt ".jsons"? Seems reasonable.
             </p>
             <p>
                 The benefit of Json Stream is that it much more readable compared to Json lines especially if you have complex objects.
                 The downside is that it is somewhat harder to parse it because you can't read the file line by line and deserialize each object like it can be done with JSON lines.
-                But there is an easy trick how to it - Implement a "pre-parser" that scans input and balances square and curly brackets until the stack is empty and then parse the resulting line just like with JSON lines.
+                But there is an easy trick how to it - Implement a "pre-parser" that scans input and balances square and curly brackets until the stack is empty and then parse the resulting blob using the library method e.g `JSON.parse()` or `json.loads()`.
                 The stack parsing trick (plus escaped line handling) is trivial to implement with an LLM or even manually code as a fun excercise.
                 Another nice feature is that every jsonl (Json Lines) file is also a json stream file so you can parse json lines with json stream parser once you implement it.
             </p>
